@@ -1,0 +1,40 @@
+# slam_toolbox — config SLAM dla REALNEGO ROSbota XL (ROS 2 Jazzy).
+# IDENTYCZNY z m8_gazebo/config/slam_rosbot.yaml (base_link + /scan_filtered działają sim i real).
+# Zmieniasz jeden → zsynchronizuj drugi. Różnica sim/real to tylko use_sim_time (z launcha).
+#
+# SEDNO: base_frame: base_link.
+#   ROSbot publikuje TF: odom -> base_link -> ... -> laser, ale NIE MA frame'a
+#   base_footprint, którego slam_toolbox szuka domyślnie. Bez tej zmiany slam po cichu
+#   nie zbuduje mapy — w logu leci "Failed to compute odom pose", a frame map nie powstaje.
+slam_toolbox:
+  ros__parameters:
+    # --- ramki TF + wejście ---
+    odom_frame: odom
+    map_frame: map
+    base_frame: base_link
+    scan_topic: /scan_filtered    # NIE /scan! patrz niżej (filtr lasera)
+    use_sim_time: false           # REALNY robot = zegar systemowy (nadpisywane z launcha)
+
+    # DLACZEGO /scan_filtered, nie /scan:
+    #   Lidar ROSbota XL (też w Gazebo!) widzi własną konstrukcję ~5 cm (~100 pkt @ 0.066-0.2 m).
+    #   Na surowym /scan SLAM wrysowuje je jako pierścień przeszkód wokół robota → komórka startowa
+    #   robi się "lethal" → planner nie ma jak wystartować → robot kręci się w kółko.
+    #   slam.launch.py odpala box-filter (laser_filter.yaml): /scan → /scan_filtered (bez self-hitów).
+
+    # --- tryb pracy ---
+    mode: mapping                 # mapping | localization
+    resolution: 0.05
+    max_laser_range: 12.0
+    minimum_travel_distance: 0.3
+    minimum_travel_heading: 0.3
+    map_update_interval: 1.0
+    transform_publish_period: 0.02
+    transform_timeout: 0.2
+    tf_buffer_duration: 30.0
+
+    # --- dopasowanie skanów i zamykanie pętli ---
+    use_scan_matching: true
+    do_loop_closing: true
+    loop_search_maximum_distance: 3.0
+    minimum_time_interval: 0.5
+    throttle_scans: 1

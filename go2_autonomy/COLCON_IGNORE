@@ -1,0 +1,2 @@
+# colcon pomija ten bundle domyslnie - patrz README (potrzebuje unitree_ros2 + Go2).
+# Wlaczenie:  vcs import < go2_deps.repos  +  rm go2_autonomy/COLCON_IGNORE

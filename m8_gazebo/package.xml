@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>m8_gazebo</name>
+  <version>0.1.0</version>
+  <description>Moduł 8 — Gazebo + ROSbot XL: gotowe configi SLAM + Nav2 + box-filter + eksploracja (base_frame=base_link, enable_stamped_cmd_vel). Sim i realny robot.</description>
+  <maintainer email="lucs.robotics@gmail.com">LucsRobotics</maintainer>
+  <license>MIT</license>
+
+  <exec_depend>slam_toolbox</exec_depend>
+  <exec_depend>nav2_bringup</exec_depend>
+  <exec_depend>nav2_map_server</exec_depend>
+  <exec_depend>teleop_twist_keyboard</exec_depend>
+  <exec_depend>laser_filters</exec_depend>
+  <!-- explore_lite: zewnętrzny (m-explore-ros2, vcs przez explore.repos) — nie z apt -->
+
+  <export><build_type>ament_python</build_type></export>
+</package>

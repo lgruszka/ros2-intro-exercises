@@ -1,0 +1,26 @@
+cmd_vel_arbiter:
+  ros__parameters:
+    output_topic: /cmd_vel
+    publish_rate_hz: 20.0
+    cmd_timeout_s: 0.4
+
+    # Velocity caps — Go2 może iść szybciej niż G1 (quadruped, stabilniejszy).
+    # max_vx 1.0 m/s to typowa wartość sport API "walk speed".
+    max_vx: 1.0
+    max_vy: 0.5
+    max_vyaw: 1.5   # 1.0→1.5: nie obcinaj rotate_to_heading_angular_vel=1.2 (user: obrót za wolny). Go2 sport API spokojnie znosi.
+
+    # Minimum-velocity floor. Go2 sport API akceptuje niższe vel niż G1
+    # (G1 ~0.12, Go2 ~0.05). WŁĄCZONE: zaobserwowano że przy małym vyaw Go2
+    # nie skręca, tylko buja się w miejscu (firmware drops sub-threshold) — nav2
+    # RotationShim / fine-align dawał komendy poniżej progu skrętu. Floor podbija
+    # niezerowe komendy do realnego progu ruchu (zachowuje 0 przy stopie).
+    # Wartości startowe — stroisz pod robota (za wysoko = hunting przy celu):
+    min_vx_threshold: 0.08
+    min_vy_threshold: 0.08
+    min_vyaw_threshold: 0.25   # floor = TYLKO kompensacja deadbandu sport API, NIE prędkość
+                               # obrotu! 0.50 było za wysoko → drobne korekty kursu podbijane
+                               # do 0.5 rad/s → robot przeskakuje cel → cofa → OSCYLACJA
+                               # (bang-bang limit cycle) — to to, co user widział jako
+                               # "0.5 rad/s + oscylacja". Szybki obrót bierze się z
+                               # rotate_to_heading_angular_vel (1.2, in-place), NIE z floora.

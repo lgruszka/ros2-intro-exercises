@@ -1,0 +1,18 @@
+# Zewnętrzne zależności Go2 — zaimportuj do swojego workspace:
+#   cd ~/go2_ws && vcs import src < src/ros2-intro-exercises/go2_autonomy/go2_deps.repos
+#
+# unitree_ros2 = oficjalny SDK Unitree (most firmware + msgs unitree_api/unitree_go/unitree_hg,
+# które go2_bridge wymaga). Buduje się wg instrukcji z jego README (cyclonedds_ws + source env).
+# Patrz: https://github.com/unitreerobotics/unitree_ros2
+repositories:
+  unitree_ros2:
+    type: git
+    url: https://github.com/unitreerobotics/unitree_ros2.git
+    version: master
+  # OPCJONALNIE — pełne go2_description z mesh-ami (.dae) do modelu w RViz/Foxglove.
+  # Nasza vendored go2_description ma sam URDF (TF działa bez mesh). Odkomentuj jeśli
+  # chcesz widzieć bryłę robota, i usuń wtedy nasze go2_autonomy/go2_description.
+  # unitree_ros:
+  #   type: git
+  #   url: https://github.com/unitreerobotics/unitree_ros.git
+  #   version: master

@@ -1,0 +1,21 @@
+# Box laser-filter dla ROSbota XL — wycina punkty WEWNĄTRZ bryły robota (footprint),
+# zostawiając bliskie ściany. Wejście: /scan, wyjście: /scan_filtered.
+#
+# Po co: RPLIDAR montowany nisko widzi własną konstrukcję ~5 cm → fałszywe przeszkody
+# i brudna mapa SLAM. Promieniowy range_min wyciąłby też bliskie ściany; box-filter
+# wycina tylko prostokąt footprintu. Na REALNYM robocie warto; w sim mniej istotne.
+# Wartości pudełka jak w tutorialu Husariona dla ROSbota XL (z anteną).
+scan_to_scan_filter_chain:
+  ros__parameters:
+    filter1:
+      name: box_filter
+      type: laser_filters/LaserScanBoxFilter
+      params:
+        box_frame: base_link
+        max_x: 0.165
+        min_x: -0.195    # + antena
+        max_y: 0.145
+        min_y: -0.145
+        max_z: 0.5
+        min_z: -0.5
+        invert: false     # false = usuń punkty WEWNĄTRZ pudełka (bryła robota)

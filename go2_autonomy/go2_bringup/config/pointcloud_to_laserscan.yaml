@@ -1,0 +1,23 @@
+pointcloud_to_laserscan:
+  ros__parameters:
+    target_frame: base_link        # Wejście = /utlidar/cloud_base (remap cloud_in w
+                                    # launchu, cloud_topic). Ta chmura jest JUŻ w
+                                    # base_link (firmware ją transformuje), więc tu
+                                    # transform = identity, a height band działa wprost
+                                    # w ramce robota.
+    transform_tolerance: 0.3
+    queue_size: 40
+    # Pas wysokości dla /utlidar/cloud_base. Podłoga jest najniżej (pierścień),
+    # ściany wyżej — dolna granica -0.08 ucina podłogę, zostawia ściany.
+    # (Dostrojone na żywo na robocie: -0.08 .. 0.30. Dalej stroisz w GUI
+    # tools/go2_scan_calib_gui.py, źródło cloud_base, podgląd /scan_calib.)
+    min_height: -0.08
+    max_height: 0.30
+    angle_min: -3.14159
+    angle_max: 3.14159
+    angle_increment: 0.0087        # 0.5 deg
+    scan_time: 0.1
+    # cloud_base jest już firmware-filtrowana (mniej ciała) — range_min może być niższy.
+    range_min: 0.30
+    range_max: 25.0
+    use_inf: true

@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>go2_description</name>
+  <version>0.1.0</version>
+  <description>
+    Unitree Go2 URDF (wersja slim — sam URDF, bez ciężkich mesh .dae) dla
+    robot_state_publisher (drzewo TF base -&gt; linki). Wizualne mesh-e (package://go2_description/dae/)
+    są opcjonalne — jeśli chcesz model w RViz/Foxglove, dociągnij pełne go2_description z
+    upstream unitree_ros (patrz README). Do nawigacji wystarczy samo TF.
+  </description>
+  <maintainer email="lukasz.gruszka90@gmail.com">Lukasz Gruszka</maintainer>
+  <license>BSD-3-Clause</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
