@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  CycloneDDS pod sieć robota Unitree Go2.
+
+  USTAW NetworkInterface name="..." na interfejs, którym łączysz się z robotem:
+    ip -br addr          # znajdź interfejs (np. enxXXXX = adapter USB-Eth, enp2s0 = wbudowany)
+  Bez właściwego interfejsu host NIE zobaczy topiców /utlidar/* ani /lowstate.
+
+  Robot Go2 (domyślnie): host 192.168.123.x/24, robot 192.168.123.161 (lidar) / .18 (sport).
+-->
+<CycloneDDS>
+    <Domain Id="any">
+        <General>
+            <Interfaces>
+                <NetworkInterface name="enp2s0" priority="default" multicast="default" />
+            </Interfaces>
+        </General>
+    </Domain>
+</CycloneDDS>

@@ -1,0 +1,9 @@
+# Zależność do autonomicznej eksploracji (explore.launch.py). Zaimportuj do swojego ws:
+#   cd ~/ros2_ws && vcs import src < src/ros2-intro-exercises/m8_gazebo/explore.repos
+#   rosdep install -i --from-path src --rosdistro jazzy -y
+#   colcon build --packages-select explore_lite && source install/setup.bash
+repositories:
+  m-explore-ros2:
+    type: git
+    url: https://github.com/robo-friends/m-explore-ros2.git
+    version: main

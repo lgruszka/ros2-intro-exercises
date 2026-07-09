@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>go2_bringup</name>
+  <version>0.1.0</version>
+  <description>Launch + config dla autonomii Unitree Go2: cloud-&gt;scan, slam_toolbox (mapowanie), Nav2/AMCL (nawigacja). Kurs ROS2 Intro (LucsRobotics).</description>
+  <maintainer email="lukasz.gruszka90@gmail.com">Lukasz Gruszka</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <exec_depend>go2_bridge</exec_depend>
+  <exec_depend>go2_description</exec_depend>
+  <!-- ROS deps dociągane runtime (apt): -->
+  <exec_depend>nav2_bringup</exec_depend>
+  <exec_depend>nav2_lifecycle_manager</exec_depend>
+  <exec_depend>slam_toolbox</exec_depend>
+  <exec_depend>pointcloud_to_laserscan</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

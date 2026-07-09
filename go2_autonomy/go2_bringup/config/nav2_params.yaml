@@ -1,0 +1,314 @@
+# Trimmed nav2 params — Go2 quadruped (courier-go2 branch).
+# Real production params will be much longer; this is enough to start tuning.
+
+amcl:
+  ros__parameters:
+    use_sim_time: false
+    base_frame_id: base_link
+    odom_frame_id: odom
+    global_frame_id: map
+    scan_topic: /scan
+    transform_tolerance: 1.0         # 0.5→1.0: scan ma ~0.15s+ latencji (cloud_base→p2l);
+                                      # za mała tolerancja → TF extrapolation drop podczas
+                                      # ruchu → AMCL gubi korektę. 1.0 jak Husarion.
+    min_particles: 500
+    max_particles: 2000
+    laser_model_type: likelihood_field
+    robot_model_type: nav2_amcl::OmniMotionModel
+    # PROBLEM 'dryf w ruchu': pose_estimate ustawia OK, ale w marszu rozjazd.
+    # Odom Go2 = /utlidar/robot_odom (odometria NÓG — ślizga się, dużo gorsza niż
+    # koła). AMCL musi korygować częściej i mocniej ufać scanowi niż odomowi.
+    update_min_a: 0.05               # 0.1→0.05: koryguj co ~3° (częściej w obrocie =
+                                      # mniej dryfu odomu między aktualizacjami)
+    update_min_d: 0.05               # 0.1→0.05: i co 5 cm translacji
+    # Alpha = szum modelu ruchu (odom). PODNIESIONE: odom nóg jest niepewny, więc
+    # rozsiewamy cząstki szerzej → scan może ściągnąć pozę z dryfu. Za wysoko =
+    # jitter; 0.3-0.4 to rozsądek dla kroczącego.
+    alpha1: 0.4                      # szum rotacji od rotacji (obrót nóg ślizga)
+    alpha2: 0.4                      # szum rotacji od translacji
+    alpha3: 0.2                      # szum translacji od translacji
+    alpha4: 0.3                      # szum translacji od rotacji
+    alpha5: 0.3                      # omni: szum strafe
+    # Odzysk gdy lokalizacja siada w ruchu (re-rozsiew cząstek) — jak Husarion off,
+    # ale dla ślizgającego odomu warto: ratuje z dryfu zamiast podążać za odomem.
+    recovery_alpha_slow: 0.001
+    recovery_alpha_fast: 0.1
+    # Auto-set initial pose: robot rusza phase1 z origin (0, 0, yaw=0), więc
+    # AMCL nie musi czekać na 2D Pose Estimate z RViz.
+    set_initial_pose: true
+    initial_pose:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      yaw: 0.0
+
+bt_navigator:
+  ros__parameters:
+    use_sim_time: false
+    global_frame: map
+    robot_base_frame: base_link
+    odom_topic: /utlidar/robot_odom
+    bt_loop_duration: 10
+    default_server_timeout: 20
+
+controller_server:
+  ros__parameters:
+    use_sim_time: false
+    odom_topic: /utlidar/robot_odom
+    controller_frequency: 20.0
+    min_x_velocity_threshold: 0.001
+    min_theta_velocity_threshold: 0.001
+    progress_checker_plugin: 'progress_checker'
+    goal_checker_plugins: ['goal_checker']
+    controller_plugins: ['FollowPath']
+
+    progress_checker:
+      plugin: 'nav2_controller::SimpleProgressChecker'
+      required_movement_radius: 0.10  # 10 cm threshold (mac mocap is the bottleneck, not the planner)
+      movement_time_allowance: 30.0    # 30 s — bumped from 15 because mac mocap integrates slower
+                                        # than typical real-robot drive trains
+
+    goal_checker:
+      plugin: 'nav2_controller::SimpleGoalChecker'
+      xy_goal_tolerance: 0.10      # tighter so robot lands centered before dock (was 0.20)
+      yaw_goal_tolerance: 0.20      # was 0.35 — tighter so dock starts from cleaner pose,
+                                     # so loose nav2 tolerance saves ~3-5 s of in-place rotation
+                                     # after retreat (when robot faces ~180° away from predock_yaw)
+      stateful: true
+
+    FollowPath:
+      # RotationShim wraps RegulatedPurePursuit. When the path heading
+      # differs from the robot's current heading by more than
+      # `angular_dist_threshold`, the shim does an in-place rotation
+      # before handing off to the primary controller. With
+      # `rotate_to_goal_heading: true`, the same applies at the end of
+      # the path — solves the post-retreat ~180° turn problem where
+      # pure-pursuit oscillated trying to reach goal yaw.
+      plugin: 'nav2_rotation_shim_controller::RotationShimController'
+      primary_controller: 'nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController'
+      angular_dist_threshold: 0.20           # 11° (było 17°). Szybki obrót-w-miejscu
+                                              # (rotate_to_heading_angular_vel=1.2 ≈69°/s)
+                                              # włącza się już od 11° błędu kursu → to JEST
+                                              # "szybsza rotacja" której chciał user (nie floor).
+                                              # Poniżej 11° = łagodne śledzenie pure-pursuit.
+      forward_sampling_distance: 0.5
+      rotate_to_heading_angular_vel: 1.2     # rad/s in-place (≈69°/s, 90° w ~1.3s). User: 0.6
+                                              # (34°/s) za wolno, "robot ledwo się kręci". Go2
+                                              # to spokojnie robi. UWAGA: szybszy obrót = większy
+                                              # lag scanu vs AMCL (0.15s×69°/s≈10°) → jeśli AMCL
+                                              # gubi pozę przy obrocie, zejdź do 0.9 lub popraw
+                                              # lokalizację. max_vyaw arbiter/bridge=1.5 (NIE
+                                              # obcina 1.2). Zmierz realny obrót: patrz niżej.
+      max_angular_accel: 4.5                 # 3.2→4.5: krótkie obroty realnie OSIĄGAJĄ target vyaw
+      simulate_ahead_time: 1.0
+      rotate_to_goal_heading: true           # rotate in-place at goal to reach yaw_goal_tolerance
+      rotate_to_heading_once: false
+      # Primary controller params — passed through to RegulatedPurePursuit.
+      desired_linear_vel: 0.8
+      lookahead_dist: 0.6
+      min_lookahead_dist: 0.3
+      max_lookahead_dist: 0.9
+      use_velocity_scaled_lookahead_dist: true
+      transform_tolerance: 0.2
+      use_collision_detection: true
+      max_allowed_time_to_collision_up_to_carrot: 1.5
+      regulated_linear_scaling_min_radius: 0.5
+      regulated_linear_scaling_min_speed: 0.25
+      use_regulated_linear_velocity_scaling: true
+      use_cost_regulated_linear_velocity_scaling: false
+      cost_scaling_dist: 0.6
+      cost_scaling_gain: 1.0
+      inflation_cost_scaling_factor: 3.0
+
+planner_server:
+  ros__parameters:
+    use_sim_time: false
+    expected_planner_frequency: 10.0
+    planner_plugins: ['GridBased']
+    GridBased:
+      plugin: 'nav2_navfn_planner::NavfnPlanner'   # :: = Jazzy (był / = Humble → planner_server nie konfigurował się → cały nav-lifecycle STARTUP=False)
+      tolerance: 0.25          # bumped from 0.2 but kept under typical short-leg navs (0.5 m)
+                                # to avoid the planner returning an empty plan when start ≈ goal
+      use_astar: true          # A* — more tolerant than Dijkstra in cluttered grids
+      allow_unknown: true
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      update_frequency: 5.0
+      publish_frequency: 2.0
+      global_frame: odom
+      robot_base_frame: base_link
+      use_sim_time: false
+      rolling_window: true
+      width: 4
+      height: 4
+      resolution: 0.05
+      footprint: '[[0.35, 0.16], [0.35, -0.16], [-0.35, -0.16], [-0.35, 0.16]]'  # Go2 z nogami ~0.70x0.31m (poprzednio wymiary G1 0.36x0.40 — za krotki, za szeroki)
+      plugins: ['obstacle_layer', 'inflation_layer']  # 2D obstacle_layer instead of voxel_layer —
+                                                        # mac /scan is single 2D ring; 3D voxelization
+                                                        # with z=0..1.5 from one slice produces phantom
+                                                        # vertical obstacles that confuse the controller
+      inflation_layer:
+        plugin: 'nav2_costmap_2d::InflationLayer'
+        cost_scaling_factor: 3.0
+        inflation_radius: 0.20       # safety margin around table A/B; map noise was
+                                      # cleaned by connected-component filter (size<5
+                                      # removed) so we can afford realistic inflation
+      obstacle_layer:
+        plugin: 'nav2_costmap_2d::ObstacleLayer'
+        enabled: true
+        observation_sources: scan
+        scan:
+          topic: /scan
+          obstacle_max_range: 8.0
+          raytrace_max_range: 10.0
+          clearing: true
+          marking: true
+          data_type: 'LaserScan'
+
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      update_frequency: 1.0
+      publish_frequency: 1.0
+      global_frame: map
+      robot_base_frame: base_link
+      use_sim_time: false
+      footprint: '[[0.35, 0.16], [0.35, -0.16], [-0.35, -0.16], [-0.35, 0.16]]'  # Go2 z nogami ~0.70x0.31m (poprzednio wymiary G1 0.36x0.40 — za krotki, za szeroki)
+      resolution: 0.05
+      track_unknown_space: false  # treat unknown as free — small mapped scene with sparse coverage
+      plugins: ['static_layer', 'obstacle_layer', 'inflation_layer']
+      static_layer:
+        plugin: 'nav2_costmap_2d::StaticLayer'
+        map_subscribe_transient_local: true
+      obstacle_layer:
+        plugin: 'nav2_costmap_2d::ObstacleLayer'
+        enabled: true
+        observation_sources: scan
+        scan:
+          topic: /scan
+          max_obstacle_height: 1.5
+          clearing: true
+          marking: true
+          data_type: 'LaserScan'
+      inflation_layer:
+        plugin: 'nav2_costmap_2d::InflationLayer'
+        cost_scaling_factor: 3.0
+        inflation_radius: 0.50  # matched to local_costmap
+
+map_server:
+  ros__parameters:
+    use_sim_time: false
+    yaml_filename: ''  # passed via launch arg `map`
+
+behavior_server:
+  ros__parameters:
+    local_costmap_topic: local_costmap/costmap_raw
+    local_footprint_topic: local_costmap/published_footprint
+    global_costmap_topic: global_costmap/costmap_raw
+    global_footprint_topic: global_costmap/published_footprint
+    cycle_frequency: 10.0
+    behavior_plugins: ['spin', 'backup', 'wait']
+    spin:
+      plugin: 'nav2_behaviors::Spin'
+    backup:
+      plugin: 'nav2_behaviors::BackUp'
+    wait:
+      plugin: 'nav2_behaviors::Wait'
+    global_frame: odom
+    robot_base_frame: base_link
+    transform_tolerance: 0.2
+    use_sim_time: false
+
+# Stub configs for nav2 bringup nodes we don't actively use. Empty
+# lists ('[]') and dicts ('{}') confuse the parameter parser ('expected
+# float/int/str/bool/bytes, got tuple ()'), so we supply one disabled item
+# of the right type instead — node configures cleanly but does nothing.
+collision_monitor:
+  ros__parameters:
+    base_frame_id: base_link
+    odom_frame_id: odom
+    # cmd_vel routed through unused topics so collision_monitor doesn't
+    # fight our /cmd_vel pipeline (controller_server → /cmd_vel direct,
+    # plus dock/retreat → /cmd_vel direct).
+    cmd_vel_in_topic: /cmd_vel_unused_in
+    cmd_vel_out_topic: /cmd_vel_unused_out
+    state_topic: /collision_monitor_state
+    transform_tolerance: 0.5
+    source_timeout: 5.0
+    base_shift_correction: true
+    stop_pub_timeout: 2.0
+    polygons: ['FootprintApproach']
+    FootprintApproach:
+      type: 'polygon'
+      action_type: 'approach'
+      footprint_topic: '/local_costmap/published_footprint'
+      time_before_collision: 1.2
+      simulation_time_step: 0.1
+      min_points: 6
+      visualize: false
+      enabled: false   # disabled — robot welded, no need for collision check
+    observation_sources: ['unused_scan']
+    unused_scan:
+      type: 'scan'
+      topic: '/scan_unused_for_collision_monitor'
+      min_height: 0.15
+      max_height: 2.0
+      enabled: false
+
+velocity_smoother:
+  ros__parameters:
+    smoothing_frequency: 20.0
+    scale_velocities: false
+    feedback: 'OPEN_LOOP'
+    max_velocity: [1.0, 0.5, 2.0]    # Go2 quadruped — wyższy niż G1 biped (0.6/0.4)
+    min_velocity: [-1.0, -0.5, -2.0]
+    max_accel: [2.5, 2.5, 3.2]
+    max_decel: [-2.5, -2.5, -3.2]
+    odom_topic: /utlidar/robot_odom
+    odom_duration: 0.1
+    deadband_velocity: [0.0, 0.0, 0.0]
+    velocity_timeout: 1.0
+
+waypoint_follower:
+  ros__parameters:
+    loop_rate: 20
+    stop_on_failure: false
+    waypoint_task_executor_plugin: 'wait_at_waypoint'
+    wait_at_waypoint:
+      plugin: 'nav2_waypoint_follower::WaitAtWaypoint'
+      enabled: true
+      waypoint_pause_duration: 200
+
+# route_server uses its own defaults — declaring `ros__parameters: {}`
+# triggers tuple () parser bug. nav2 bringup launches it with built-in
+# defaults; sits configured but unused.
+
+# opennav_docking::DockingServer requires `dock_plugins` to be declared at
+# minimum, otherwise lifecycle configure aborts with "Charging dock plugins
+# not given!" and the whole nav2 stack fails to bring up. We supply one
+# disabled simple charging dock just to satisfy the validator. Our actual
+# table docking is handled by g1_courier_docking.dock_action_server (three
+# modes), not opennav_docking — so this stub is never invoked.
+docking_server:
+  ros__parameters:
+    controller_frequency: 50.0
+    initial_perception_timeout: 5.0
+    wait_charge_timeout: 5.0
+    dock_approach_timeout: 30.0
+    undock_linear_tolerance: 0.05
+    undock_angular_tolerance: 0.1
+    max_retries: 3
+    base_frame: base_link
+    fixed_frame: odom
+    dock_backwards: false
+    dock_prestaging_tolerance: 0.5
+    dock_plugins: ['simple_charging_dock']
+    simple_charging_dock:
+      plugin: 'opennav_docking::SimpleChargingDock'
+      docking_threshold: 0.05
+      staging_x_offset: -0.7
+      use_external_detection_pose: false
+      use_battery_status: false
+      use_stall_detection: false

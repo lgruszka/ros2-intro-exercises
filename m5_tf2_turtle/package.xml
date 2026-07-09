@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>m5_tf2_turtle</name>
+  <version>0.1.0</version>
+  <description>Moduł 5 — TF2 z turtle1/turtle2 (classic tf2 demo)</description>
+  <maintainer email="lucs.robotics@gmail.com">LucsRobotics</maintainer>
+  <license>MIT</license>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>turtlesim</exec_depend>
+  <export><build_type>ament_python</build_type></export>
+</package>

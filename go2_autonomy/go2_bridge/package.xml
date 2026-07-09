@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>go2_bridge</name>
+  <version>0.1.0</version>
+  <description>Most sprzętowy Unitree Go2: arbiter /cmd_vel, konsument sport API (/cmd_vel -&gt; ruch), lowstate -&gt; /joint_states. Kurs ROS2 Intro (LucsRobotics).</description>
+  <maintainer email="lukasz.gruszka90@gmail.com">Lukasz Gruszka</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>go2_msgs</exec_depend>
+  <!-- msgs Unitree z unitree_ros2 (vcs, patrz go2_deps.repos): -->
+  <exec_depend>unitree_api</exec_depend>
+  <exec_depend>unitree_hg</exec_depend>
+  <exec_depend>unitree_go</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

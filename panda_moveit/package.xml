@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>panda_moveit</name>
+  <version>0.1.0</version>
+  <description>Warsztaty W7/W8 — manipulator Franka Panda + MoveIt 2: pick &amp; place z moveit_py
+    (symulacja mock hardware; ten sam kod działa na realnej Pandzie przez franka_ros2).</description>
+  <maintainer email="lucs.robotics@gmail.com">LucsRobotics</maintainer>
+  <license>MIT</license>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>moveit_py</exec_depend>
+  <exec_depend>moveit_configs_utils</exec_depend>
+  <exec_depend>moveit_resources_panda_moveit_config</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>controller_manager</exec_depend>
+
+  <export><build_type>ament_python</build_type></export>
+</package>
