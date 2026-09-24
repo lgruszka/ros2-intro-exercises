@@ -74,6 +74,10 @@ bt_navigator:
 
 controller_server:
   ros__parameters:
+    # odom_topic MUSI być tu (nie tylko w bt_navigator): bez niego controller_server czyta domyślny
+    # topic "odom", na którym ROSbot nic nie publikuje -> MPPI widzi prędkość 0 i nie przekracza
+    # ~0.3 m/s (start każdej trajektorii od v=0 + limit ax_max*model_dt). Czytane tylko przy starcie.
+    odom_topic: /odometry/filtered
     # ROSbot/Gazebo używa TwistStamped na /cmd_vel — Nav2 musi publikować stampowane,
     # inaczej typy się nie zgadzają i robot nie dostaje komend (nie jedzie).
     enable_stamped_cmd_vel: true

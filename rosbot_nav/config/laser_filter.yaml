@@ -15,7 +15,7 @@ scan_to_scan_filter_chain:
       params:
         box_frame: base_link
         max_x: 0.165
-        min_x: -0.195    # + antena
+        min_x: -0.24     # + antena/maszt za lidarem (realny ROSbot XL: punkty do x=-0.20 blokowały collision_monitor)
         max_y: 0.145
         min_y: -0.145
         max_z: 0.5

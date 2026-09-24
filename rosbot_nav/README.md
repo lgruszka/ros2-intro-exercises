@@ -24,7 +24,8 @@ Wszystkie domyślnie `use_sim_time:=false` (realny robot = zegar systemowy). Ca�
 | `use_sim_time` | `true` | `false` |
 | `collision_monitor` | OFF (obejście self-hitów sim) | **ON** (bezpieczeństwo) |
 | skan dla AMCL/costmap/collision_monitor | `/scan` + min_range 0.2 | **`/scan_filtered`** wszędzie |
-| MPPI (tryb 2) | 1000/40 (lekkie, CPU sim) | **2000/56** (pełne; Nav2 na laptopie) |
+| MPPI (tryb 2) | 1000/40 | 1000/40 (+ `transform_tolerance` 0.3 na WiFi) |
+| wariant RPP (tryb 2) | — | `nav.launch.py controller:=rpp` |
 | `slam_rosbot.yaml`, `laser_filter.yaml` | — | **identyczne** z m8_gazebo (trzymaj w sync) |
 
 ## Wymagania wstępne (raz)
@@ -80,9 +81,19 @@ Podgląd: Foxglove (`foxglove_bridge`, `ws://<ip-robota>:8765`) albo RViz (`/map
 ## Warstwa 3 = Tryb 2 — Nawigacja po mapie (cele w RViz)
 
 ```bash
-ros2 launch rosbot_nav nav.launch.py map:=$HOME/maps/moja_mapa.yaml
+ros2 launch rosbot_nav nav.launch.py map:=$HOME/maps/moja_mapa.yaml                   # MPPI (domyślnie)
+ros2 launch rosbot_nav nav.launch.py map:=$HOME/maps/moja_mapa.yaml controller:=rpp   # wariant RPP
+rviz2                                                                                 # osobny terminal
 ```
 RViz (Fixed Frame `map`): **2D Pose Estimate** (gdzie stoi robot, kierunek strzałki!) → **2D Goal Pose** (cel).
+
+- **Pozycję startową zaznacz w ~60 s** od startu. Inaczej `global_costmap` nie doczeka się ramki `map`
+  i nawigacja nie wstanie („Failed to bring up all requested nodes. Aborting bringup") → Ctrl+C, od nowa.
+- **Jeden Nav2 na sieć.** Nie odpalaj drugiego `nav.launch.py` „żeby mieć mapę w RViz" — mapa pojawi się
+  sama, a dwa Nav2 o tych samych nazwach ładują sobie węzły i cele padają („unknown goal response",
+  „Goal failed"). `nav.launch.py` sam to blokuje (sprawdza `/bt_navigator`; obejście `allow_duplicate:=true`).
+- **MPPI czy RPP?** MPPI (domyślny) sam omija przeszkody — wygina tor na lokalnej costmapie. RPP jedzie
+  prosto po ścieżce z planera z zadaną prędkością i przed przeszkodą **staje** (objazd tylko przez replan).
 
 ## Warstwa 4 = Tryb 3 — Autonomiczna eksploracja
 
@@ -102,11 +113,28 @@ Robot sam jeździ do granic znane/nieznane. Działa tylko w **zamkniętej** prze
 
 - **Ten sam `ROS_DOMAIN_ID`** na robocie i laptopie (`echo 'export ROS_DOMAIN_ID=10' >> ~/.bashrc`,
   `export ROS_LOCALHOST_ONLY=0`). Rozjechany domain = 0 publisherów mimo działających węzłów.
-- **Sync zegarów (chrony/NTP) — krytyczne.** Przy `use_sim_time=false` każda maszyna stempluje TF
-  własnym zegarem; rozjechane = „extrapolation into the future". Test: `ros2 run tf2_ros tf2_echo
-  map base_link` bez ostrzeżeń.
-- **CPU:** odpalaj Nav2/RViz na laptopie (mocniejszym niż komputer pokładowy). „Jedzie i staje" =
-  przeciążony CPU → zamknij RViz, ew. zejdź z MPPI 2000/56 → 1000/40 w `nav2_rosbot.yaml`.
+- **Zegary (chrony/NTP):** przy `use_sim_time=false` każda maszyna stempluje TF własnym zegarem — trzymaj
+  chrony na obu (najprościej: laptop bierze czas z robota). Sprawdzenie: `chronyc tracking` (System time
+  rzędu ms = OK).
+- **„extrapolation into the future" przy zsynchronizowanych zegarach = WiFi, nie zegar.** Dane z robota
+  (TF, odometria, skan) idą przez WiFi do laptopa z Nav2; na 2.4 GHz widzieliśmy piki 0.3–0.8 s (tolerancje
+  Nav2 to 0.1–0.3 s) → błędy TF, `collision_monitor` „Robot to stop due to invalid source", „Goal failed".
+  Leczenie: **WiFi 5 GHz** + wyłączone oszczędzanie energii na robocie
+  (`sudo nmcli connection modify <sieć> 802-11-wireless.powersave 2`). Diagnoza: `ping <robot>` (piki
+  >100 ms?) i `ros2 topic delay /odometry/filtered` na laptopie. **`chronyc makestep` i restarty robota
+  tego nie naprawią** (każdy skok zegara dodatkowo czyści bufor TF).
+- **CPU:** odpalaj Nav2/RViz na laptopie (mocniejszym niż komputer pokładowy). „Jedzie i staje" przy
+  dobrym WiFi = przeciążony CPU (`Control loop missed its desired rate`) → zamknij RViz.
+
+## Najczęstsze problemy (realny ROSbot XL)
+
+| Objaw | Przyczyna | Co zrobić |
+|---|---|---|
+| MPPI jedzie ≤ 0.3 m/s, `vx_max` nic nie zmienia | brak `odom_topic` w **`controller_server`** → Nav2 czyta pusty `odom`, MPPI widzi prędkość 0 | `controller_server: odom_topic: /odometry/filtered` (jest w naszym configu) + **restart Nav2** |
+| staje przy starcie / obrocie: „Robot to approach", „Failed to make progress" | lidar widzi antenę/maszt **wewnątrz** obrysu (filtr ich nie wyciął) | poszerz pudełko w `laser_filter.yaml` (`min_x`); sprawdź, czy w `/scan_filtered` nie ma punktów w promieniu `robot_radius` |
+| „extrapolation into the future", przerwane cele | opóźnienia WiFi (patrz wyżej) | 5 GHz, powersave off |
+| „unknown goal response", „Action server is inactive. Rejecting the goal" | dwa Nav2 naraz | jeden `nav.launch.py`, do podglądu samo `rviz2` |
+| „Aborting bringup" zaraz po starcie | brak pozycji startowej w ~60 s | 2D Pose Estimate szybciej, restart launcha |
 
 ## Pliki
 
@@ -115,5 +143,6 @@ Robot sam jeździ do granic znane/nieznane. Działa tylko w **zamkniętej** prze
 | (driver lidaru) | 1,2,3 | **zewnętrzny** `rplidar_ros` → `ros2 launch rplidar_ros rplidar_s3_launch.py serial_port:=/dev/ttyUSB1` (nie nasz pakiet) |
 | `config/laser_filter.yaml` | 1,2,3 | box-filter `/scan → /scan_filtered` (= m8_gazebo) |
 | `config/slam_rosbot.yaml` | 1,3 | slam_toolbox `base_link`, `/scan_filtered` (= m8_gazebo) |
-| `config/nav2_rosbot.yaml` | 2 | Nav2 REAL: collision_monitor ON, `/scan_filtered`, MPPI 2000/56 |
+| `config/nav2_rosbot.yaml` | 2 | Nav2 REAL: collision_monitor ON, `/scan_filtered`, MPPI 1000/40, `odom_topic` w controller_server |
+| `config/nav2_rosbot_rpp.yaml` | 2 | to samo z RPP zamiast MPPI (`controller:=rpp`) — różni się tylko blokiem FollowPath |
 | `config/explore.yaml` | 3 | eksploracja REAL: RPP, collision_monitor ON, `/scan_filtered` |
