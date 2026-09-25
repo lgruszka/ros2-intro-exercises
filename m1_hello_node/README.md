@@ -19,20 +19,24 @@ m1_hello_node/
         └── hello_solution.py              # podpowiedź
 ```
 
-## Setup w sandboxie
+## Setup (Ubuntu 24.04 + ROS 2 Jazzy)
+
+Pakiet masz już w workspace po `git clone` repo ćwiczeń (kurs: „ROS2 u siebie”, Krok 5 —
+https://lucsrobotics.com/ros2-intro/#/instalacja). **Nie kopiuj** go w inne miejsce `~/ros2_ws/src` — dwie kopie tego
+samego pakietu kończą się błędem colcon `Duplicate package names`.
 
 ```bash
-# 1. utwórz workspace (raz, jeśli nie ma)
-mkdir -p ~/ros2_ws/src
-cd ~/ros2_ws/src
-
-# 2. skopiuj pakiet
-cp -r /workspace/exercises/m1_hello_node/intro_node .
-
-# 3. build + source
+# pakiet leży w: ~/ros2_ws/src/ros2-intro-exercises/m1_hello_node/
 cd ~/ros2_ws
 colcon build --packages-select intro_node
 source install/setup.bash
+```
+
+Nie masz jeszcze workspace'u? Jednorazowo:
+
+```bash
+mkdir -p ~/ros2_ws/src && cd ~/ros2_ws/src
+git clone https://github.com/lgruszka/ros2-intro-exercises.git
 ```
 
 ## Twoje TODO
@@ -108,6 +112,6 @@ Sukces: `✓ Module 1 exercise — PASSED`.
 
 ## Materiał referencyjny
 
-- [Module 1 (lekcja w SPA)](../../app/src/modules/module1/Module1.jsx)
+- Module 1 (lekcja w SPA): https://lucsrobotics.com/ros2-intro/
 - [rclpy Node API](https://docs.ros.org/en/jazzy/p/rclpy/rclpy.node.html)
 - [rclpy Logging](https://docs.ros.org/en/jazzy/Concepts/About-Logging.html)

@@ -6,8 +6,8 @@ Każdy folder `mN_*` to jedno ćwiczenie powiązane z modułem kursu. Pracujesz 
 (`*_solution.py`) na wypadek gdybyś utknął.
 
 > Kurs i materiały interaktywne: **https://lucsrobotics.com/ros2-intro/**
-> Te same ćwiczenia są wbudowane w sandbox kursu (code-server w przeglądarce) —
-> to repo jest dla osób, które chcą pracować **na własnym Ubuntu**.
+> Pracujesz na **Ubuntu 24.04 + ROS 2 Jazzy** (natywnie, w maszynie wirtualnej albo w WSL2) —
+> to repo klonujesz do swojego workspace'u `~/ros2_ws/src`.
 
 ---
 
@@ -121,13 +121,13 @@ Różne `ROS_DOMAIN_ID` = izolacja (nie widzą się). Szczegóły w module **M3 
 
 ---
 
-## Native gotchas (rzeczy, które gryzą poza sandboxem)
+## Gotchas (rzeczy, które gryzą na początku)
 
 - **`source install/setup.bash` w każdym nowym terminalu** — inaczej `ros2 run` nie znajdzie pakietu.
 - **`colcon build` odpalasz z `~/ros2_ws`** (korzeń workspace), nie z `src/`.
 - **`--symlink-install`** = edytujesz `.py` i wystarczy ponowny `ros2 run` (bez rebuildu). Zmiany w `setup.py`/`package.xml` wciąż wymagają `colcon build`.
 - **`ros2 daemon stop`** gdy `ros2 node list` / `ros2 topic list` pokazują „duchy" po crashu.
-- **`/cmd_vel` na Jazzy to `TwistStamped`**, nie `Twist` (dotyczy warsztatów z robotami).
+- **`/cmd_vel`: `Twist` czy `TwistStamped`** — zależy od konfiguracji sterownika robota (np. `enable_stamped_cmd_vel` w ros2_control), a nie od samej wersji Jazzy. Sprawdź typ: `ros2 topic info /cmd_vel` (dotyczy warsztatów z robotami).
 
 ---
 

@@ -30,7 +30,9 @@ echo "  ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}"
 
 # ── 4. Uruchom talker w tle ─────────────────────────────────────────────
 yellow "▶ startuję talker w tle..."
-ros2 run demo_nodes_cpp talker > /tmp/m0_talker.log 2>&1 &
+# binarkę uruchamiamy bezpośrednio (nie przez "ros2 run"), żeby kill na końcu
+# zatrzymał samego talkera - "ros2 run" zabity sygnałem zostawia proces-sierotę.
+"$(ros2 pkg prefix demo_nodes_cpp)/lib/demo_nodes_cpp/talker" > /tmp/m0_talker.log 2>&1 &
 TALKER_PID=$!
 sleep 3
 

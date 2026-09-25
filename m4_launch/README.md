@@ -21,16 +21,24 @@ m4_launch/
         └── monitor.py                 # gotowy subscriber wszystkich /count_*
 ```
 
-## Setup w sandboxie
+## Setup (Ubuntu 24.04 + ROS 2 Jazzy)
+
+Pakiet masz już w workspace po `git clone` repo ćwiczeń (kurs: „ROS2 u siebie”, Krok 5 —
+https://lucsrobotics.com/ros2-intro/#/instalacja). **Nie kopiuj** go w inne miejsce `~/ros2_ws/src` — dwie kopie tego
+samego pakietu kończą się błędem colcon `Duplicate package names`.
 
 ```bash
-mkdir -p ~/ros2_ws/src
-cd ~/ros2_ws/src
-cp -r /workspace/exercises/m4_launch/intro_demo .
-
+# pakiet leży w: ~/ros2_ws/src/ros2-intro-exercises/m4_launch/
 cd ~/ros2_ws
 colcon build --packages-select intro_demo --symlink-install
 source install/setup.bash
+```
+
+Nie masz jeszcze workspace'u? Jednorazowo:
+
+```bash
+mkdir -p ~/ros2_ws/src && cd ~/ros2_ws/src
+git clone https://github.com/lgruszka/ros2-intro-exercises.git
 ```
 
 ## Co robi pakiet
@@ -117,6 +125,6 @@ Skrypt sprawdza:
 
 ## Materiał referencyjny
 
-- [Module 4 (lekcja w SPA)](../../app/src/modules/module4/Module4.jsx)
+- Module 4 (lekcja w SPA): https://lucsrobotics.com/ros2-intro/
 - [ROS2 Launch tutorial](https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Launch/Creating-Launch-Files.html)
 - [launch_ros API](https://docs.ros.org/en/jazzy/p/launch_ros/index.html)

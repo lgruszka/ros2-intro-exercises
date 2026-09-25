@@ -15,6 +15,7 @@ Pomocnik: hello_solution.py obok zawiera referencyjne rozwiązanie.
 
 import rclpy
 from rclpy.node import Node
+from rclpy.executors import ExternalShutdownException
 
 
 class Hello(Node):
@@ -41,11 +42,11 @@ def main():
     node = Hello()
     try:
         rclpy.spin(node)
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, ExternalShutdownException):
         pass
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        rclpy.try_shutdown()
 
 
 if __name__ == '__main__':

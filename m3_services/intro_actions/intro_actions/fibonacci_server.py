@@ -18,6 +18,7 @@ import time
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionServer
+from rclpy.executors import ExternalShutdownException
 from action_tutorials_interfaces.action import Fibonacci
 
 
@@ -57,11 +58,11 @@ def main():
     node = FibonacciActionServer()
     try:
         rclpy.spin(node)
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, ExternalShutdownException):
         pass
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        rclpy.try_shutdown()
 
 
 if __name__ == '__main__':

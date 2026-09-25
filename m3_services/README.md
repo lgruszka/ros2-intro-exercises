@@ -29,21 +29,24 @@ m3_services/
         └── fibonacci_server.py        # gotowy serwer (do uruchomienia)
 ```
 
-## Setup w sandboxie
+## Setup (Ubuntu 24.04 + ROS 2 Jazzy)
+
+Pakiet masz już w workspace po `git clone` repo ćwiczeń (kurs: „ROS2 u siebie”, Krok 5 —
+https://lucsrobotics.com/ros2-intro/#/instalacja). **Nie kopiuj** go w inne miejsce `~/ros2_ws/src` — dwie kopie tego
+samego pakietu kończą się błędem colcon `Duplicate package names`.
 
 ```bash
-mkdir -p ~/ros2_ws/src
-cd ~/ros2_ws/src
-
-# część obowiązkowa
-cp -r /workspace/exercises/m3_services/intro_services .
-
-# stretch
-cp -r /workspace/exercises/m3_services/intro_actions .
-
+# pakiet leży w: ~/ros2_ws/src/ros2-intro-exercises/m3_services/
 cd ~/ros2_ws
 colcon build --packages-select intro_services intro_actions
 source install/setup.bash
+```
+
+Nie masz jeszcze workspace'u? Jednorazowo:
+
+```bash
+mkdir -p ~/ros2_ws/src && cd ~/ros2_ws/src
+git clone https://github.com/lgruszka/ros2-intro-exercises.git
 ```
 
 ## Część 1 — Service add_two_ints
@@ -137,6 +140,6 @@ Skrypt sprawdza tylko część 1 (services). Stretch jest weryfikowany wizualnie
 
 ## Materiał referencyjny
 
-- [Module 3 (lekcja w SPA)](../../app/src/modules/module3/Module3.jsx)
+- Module 3 (lekcja w SPA): https://lucsrobotics.com/ros2-intro/
 - [ROS2 Services tutorial](https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Py-Service-And-Client.html)
 - [ROS2 Actions tutorial](https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Writing-an-Action-Server-Client/Py.html)

@@ -4,6 +4,7 @@ Module 3 — Service server (SOLUTION).
 
 import rclpy
 from rclpy.node import Node
+from rclpy.executors import ExternalShutdownException
 from example_interfaces.srv import AddTwoInts
 
 
@@ -33,11 +34,11 @@ def main():
     node = AddTwoIntsServer()
     try:
         rclpy.spin(node)
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, ExternalShutdownException):
         pass
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        rclpy.try_shutdown()
 
 
 if __name__ == '__main__':

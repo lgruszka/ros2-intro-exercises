@@ -21,22 +21,24 @@ m2_pub_sub/
         └── listener_solution.py
 ```
 
-## Setup w sandboxie
+## Setup (Ubuntu 24.04 + ROS 2 Jazzy)
 
-Przy pierwszym ćwiczeniu w sandboxie potrzebujesz workspace:
+Pakiet masz już w workspace po `git clone` repo ćwiczeń (kurs: „ROS2 u siebie”, Krok 5 —
+https://lucsrobotics.com/ros2-intro/#/instalacja). **Nie kopiuj** go w inne miejsce `~/ros2_ws/src` — dwie kopie tego
+samego pakietu kończą się błędem colcon `Duplicate package names`.
 
 ```bash
-# 1. utwórz workspace (raz)
-mkdir -p ~/ros2_ws/src
-cd ~/ros2_ws/src
-
-# 2. skopiuj pakiet (do każdego ćwiczenia)
-cp -r /workspace/exercises/m2_pub_sub/intro_pubsub .
-
-# 3. build + source
+# pakiet leży w: ~/ros2_ws/src/ros2-intro-exercises/m2_pub_sub/
 cd ~/ros2_ws
 colcon build --packages-select intro_pubsub
 source install/setup.bash
+```
+
+Nie masz jeszcze workspace'u? Jednorazowo:
+
+```bash
+mkdir -p ~/ros2_ws/src && cd ~/ros2_ws/src
+git clone https://github.com/lgruszka/ros2-intro-exercises.git
 ```
 
 ## Twoje TODO
@@ -93,7 +95,7 @@ Po sukcesie zobaczysz `✓ Module 2 exercise — PASSED`.
 
 1. **Zmień typ wiadomości** na `geometry_msgs/Twist`:
    - publisher: ustaw `linear.x = 0.5`, `angular.z = 0.3`
-   - obserwuj w Foxglove (3D panel → "Plot" → /chatter/linear/x)
+   - obserwuj: `ros2 topic echo /chatter` albo wykres `ros2 run rqt_plot rqt_plot /chatter/linear/x`
 
 2. **Dodaj QoS BEST_EFFORT**:
    - Zmień QoS w talker.py: `from rclpy.qos import qos_profile_sensor_data`
@@ -102,6 +104,6 @@ Po sukcesie zobaczysz `✓ Module 2 exercise — PASSED`.
 
 ## Materiał referencyjny
 
-- [Module 2 — Topics + QoS](../../../app/src/modules/module2/Module2.jsx) (treść lekcji)
+- Module 2 — Topics + QoS: https://lucsrobotics.com/ros2-intro/ (treść lekcji)
 - [Oficjalny tutorial ROS2](https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Py-Publisher-And-Subscriber.html)
 - [rclpy QoS](https://docs.ros.org/en/jazzy/p/rclpy/rclpy.qos.html)

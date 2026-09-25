@@ -1,16 +1,24 @@
 # Moduł 0 — Smoke test: pierwsze polecenia ROS2
 
-> Cel: zweryfikować że sandbox działa, ROS2 jest gotowy, i że rozumiesz jak wygląda graf nodów na żywo. **Nie piszemy własnego kodu** — używamy systemowych demo nodów.
+> Cel: sprawdzić, że ROS 2 Jazzy na Twoim Ubuntu 24.04 działa, i zobaczyć na żywo, jak wygląda graf nodów. **Nie piszemy własnego kodu** — używamy systemowych demo nodów.
 
 ## Setup (jednorazowo na początku kursu)
 
-W swoim sandboxie (VS Code w przeglądarce) wszystko już jest. ROS2 Jazzy zainstalowany, sourceowany przy każdym nowym terminalu, `ROS_DOMAIN_ID` ustawiony per student.
+Potrzebujesz Ubuntu 24.04 z zainstalowanym ROS 2 Jazzy (natywnie, w maszynie wirtualnej albo w WSL2).
+Instrukcja krok po kroku: sekcja **„ROS2 u siebie”** w kursie (https://lucsrobotics.com/ros2-intro/#/instalacja).
 
-Quick sanity check:
+Każdy nowy terminal musi znać ROS 2. Załaduj środowisko i dopisz je do `~/.bashrc`, żeby działo się to automatycznie:
 
 ```bash
-echo $ROS_DOMAIN_ID                # Twój unikalny domain, np. 7
+source /opt/ros/jazzy/setup.bash
+echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
+```
+
+Szybkie sprawdzenie:
+
+```bash
 which ros2                          # /opt/ros/jazzy/bin/ros2
+echo $ROS_DOMAIN_ID                 # puste = domena 0 (domyślna) - to w porządku
 ros2 --help                         # lista komend
 ```
 
@@ -22,7 +30,13 @@ ros2 --help                         # lista komend
 ros2 doctor
 ```
 
-Powinno wypisać listę testów z `:white_check_mark:` przy każdym. Jeden warning typu `QoS` jest OK (to wymaga uruchomionych nodów żeby zweryfikować). Jeśli widzisz `ERROR` — zgłoś instruktorowi.
+Na końcu powinno pojawić się podsumowanie:
+
+```
+All 5 checks passed
+```
+
+Liczba testów może się różnić. Linie `UserWarning: ... has been updated to a new version` (informacja, że jest nowsza wersja pakietu) są normalne i nie oznaczają błędu. Jeśli widzisz `ERROR` albo `N/M checks failed` — zgłoś instruktorowi.
 
 ```bash
 ros2 doctor --report               # pełen raport środowiska
@@ -30,7 +44,7 @@ ros2 doctor --report               # pełen raport środowiska
 
 ### Krok 2 — Talker (terminal 1)
 
-Otwórz terminal w VS Code (Ctrl+\`):
+Otwórz terminal (`Ctrl+Alt+T`):
 
 ```bash
 ros2 run demo_nodes_cpp talker
@@ -49,7 +63,7 @@ Co to robi: node `talker` (C++ binarne z systemu) publikuje wiadomość typu `st
 
 ### Krok 3 — Listener (terminal 2)
 
-Otwórz **nowy tab** w terminalu (klik `+` przy zakładce):
+Otwórz **nowe okno albo kartę terminala** (`Ctrl+Shift+T` w oknie terminala):
 
 ```bash
 ros2 run demo_nodes_cpp listener
@@ -125,9 +139,12 @@ Czyli talker publikuje ~1 Hz. Stabilnie.
 ### Stretch — różne typy wiadomości
 
 ```bash
-# Inny demo node — publikuje liczby
+# Drugi talker pod inną nazwą, publikujący na inny topic (remapowanie)
 ros2 run demo_nodes_cpp talker --ros-args -r __node:=talker2 -r chatter:=/numbers
-# Hmm, ten konkretny binarny i tak publikuje String. Zostawmy to.
+
+# w innym terminalu: pojawił się /talker2 i topic /numbers (typ nadal std_msgs/msg/String)
+ros2 node list
+ros2 topic list -t
 
 # Sprawdź dostępne demo nody:
 ros2 pkg executables demo_nodes_cpp
@@ -135,9 +152,10 @@ ros2 pkg executables demo_nodes_cpp
 
 ## Walidacja
 
-Uruchom:
+Uruchom (katalog po `git clone` z „ROS2 u siebie”, Krok 5):
 
 ```bash
+cd ~/ros2_ws/src/ros2-intro-exercises/m0_first_steps
 bash validate.sh
 ```
 
@@ -159,10 +177,10 @@ Sukces:
 Zostaw 1 terminal otwarty z `talker` — przyda się w module 1 (sprawdzimy ten sam graf z lifecycle perspective).
 
 Następny moduł:
-- **[Module 1 — Nodes & ros2 CLI](../../app/src/modules/module1/Module1.jsx)** — napiszemy własny node Pythonem
+- **Moduł 1 — Nodes & ros2 CLI** (https://lucsrobotics.com/ros2-intro/) — napiszesz własny node w Pythonie
 
 ## Materiał referencyjny
 
-- [Module 0 (lekcja w SPA)](../../app/src/modules/module0/Module0.jsx)
+- Moduł 0 (lekcja w kursie): https://lucsrobotics.com/ros2-intro/
 - [ROS2 Jazzy CLI](https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools.html)
 - [Co to ROS2](https://docs.ros.org/en/jazzy/Concepts.html)
