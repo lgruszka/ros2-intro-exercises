@@ -1,21 +1,21 @@
 """
-Module 7 — Warsztat praktyczny — capstone bringup.
+Warsztat W3 — capstone bringup (Webots + Nav2 jednocześnie).
 
-Opcjonalny launch który uruchamia Webots + Nav2 jednocześnie (zakłada że mapa
-już istnieje w maps/my_map.yaml). Przydatne dla iteracji po Checkpoint 4,
-kiedy nie chcesz za każdym razem ręcznie odpalać 4 terminali.
+Opcjonalny launch, który uruchamia Webots z TurtleBot3 i Nav2 naraz. Zakłada, że
+mapa już istnieje w ~/maps/my_map.yaml (README, Checkpoint 4). Przydaje się do
+iteracji nad Nav2, gdy nie chcesz za każdym razem otwierać kilku terminali.
 
-UWAGA: ten launch NIE startuje SLAM toolbox-a — najpierw zbuduj mapę
-ręcznie wg README (Checkpointy 1-4), potem używaj tego launch-a do
-iteracji nad Nav2 (Checkpointy 5+).
+UWAGA: ten launch NIE startuje SLAM toolboxa ani RViz. Najpierw zbuduj mapę
+wg README (Checkpointy 1-4), otwórz RViz (ros2 launch nav2_bringup rviz_launch.py
+use_sim_time:=true) i od razu po starcie ustaw „2D Pose Estimate” (Checkpoint 6).
 
 Użycie:
-    cd ~/ros2_capstone
-    ros2 launch launch/capstone_bringup.launch.py
+    CAP=~/ros2_ws/src/ros2-intro-exercises/m7_nav2_capstone
+    ros2 launch $CAP/launch/capstone_bringup.launch.py
 
-Override mapy:
-    ros2 launch launch/capstone_bringup.launch.py \\
-        map_file:=/ścieżka/do/mapy.yaml
+Inna mapa:
+    ros2 launch $CAP/launch/capstone_bringup.launch.py \\
+        map_file:=/pełna/ścieżka/do/mapy.yaml
 """
 
 import os
@@ -28,18 +28,19 @@ from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
-    capstone_dir = os.path.expanduser('~/ros2_capstone')
+    # katalog m7_nav2_capstone (ten plik leży w jego podkatalogu launch/)
+    capstone_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     map_arg = DeclareLaunchArgument(
         'map_file',
-        default_value=os.path.join(capstone_dir, 'maps', 'my_map.yaml'),
+        default_value=os.path.expanduser('~/maps/my_map.yaml'),
         description='Ścieżka do zapisanej mapy YAML',
     )
 
     params_arg = DeclareLaunchArgument(
         'params_file',
         default_value=os.path.join(capstone_dir, 'params', 'nav2_params.yaml'),
-        description='Ścieżka do parametrów Nav2',
+        description='Ścieżka do parametrów Nav2 (domyślne z Jazzy + enable_stamped_cmd_vel)',
     )
 
     # Webots + TurtleBot3

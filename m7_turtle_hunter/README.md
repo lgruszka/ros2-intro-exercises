@@ -30,18 +30,27 @@ i publikuje na `/captures`; game_manager odbiera to i spawnuje nową ofiarę.
 
 ## Strojenie
 
+Launch nadaje węzłom nazwy `hunter` i `game_manager` (`name=` w launchu), więc parametry
+ustawiasz na `/hunter` (sprawdzisz to przez `ros2 node list`):
+
 ```bash
-ros2 param set /hunter_node kp_linear 2.0
-ros2 param set /hunter_node kp_angular 6.0
+ros2 param set /hunter kp_linear 2.0
+ros2 param set /hunter kp_angular 6.0
 ```
 
 ## Pułapki
 
-- **Subskrypcje per-ofiara**: jedna metoda obsługuje wiele żółwi przez `functools.partial(self.on_prey_pose, name)`
-  (nazwa wpisana na stałe — czysto, bez triku lambda-closure w pętli).
+- **Subskrypcje per-ofiara**: jedna metoda obsługuje wiele żółwi przez `lambda msg, n=name: self.on_prey_pose(n, msg)`
+  (domyślny argument `n=name` zamraża nazwę w chwili tworzenia lambdy — bez niego wszystkie subskrypcje
+  w pętli widziałyby ostatnią nazwę).
 - **Race condition `/kill`**: async kill + spóźniony `/preyN/pose` może dać podwójny capture; rozwiązanie to
   cooldown (`recently_killed` z timestampem) ignorujący pose'y tuż po killu.
 
 ## Podgląd
 
-Foxglove (ws://localhost:8765): panel 3D / Raw Messages na `/captures`, `/turtleN/pose`.
+Grę widzisz w oknie turtlesim. Złapania i pozycje podejrzysz w drugim terminalu:
+
+```bash
+ros2 topic echo /captures
+ros2 topic echo /prey1/pose
+```

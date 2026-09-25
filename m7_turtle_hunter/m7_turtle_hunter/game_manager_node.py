@@ -19,8 +19,8 @@ class GameManagerNode(Node):
 
         self.spawn_cli = self.create_client(Spawn, '/spawn')
         self.create_subscription(String, '/captures', self.on_capture, 10)
-        # Pierwsze 2s czekamy aż turtlesim wstanie, potem co sekundę
-        # uzupełniamy brakujące ofiary.
+        # Co sekundę uzupełniamy brakujące ofiary (dopóki turtlesim nie
+        # wystawi /spawn, respawn_tick po prostu nic nie robi).
         self.create_timer(1.0, self.respawn_tick)
 
         self.get_logger().info('Game manager ready')
@@ -47,13 +47,12 @@ class GameManagerNode(Node):
                 lambda f, n=name: self._on_spawn_done(n, f))
 
     def _on_spawn_done(self, name, future):
-        try:
-            future.result()
-            self.alive.add(name)
+        # Błąd serwisu w ROS 2 wraca w polach odpowiedzi, nie jako wyjątek:
+        # przy zajętej nazwie turtlesim loguje ERROR i zwraca pusty name.
+        # W obu przypadkach żółw o tej nazwie jest na arenie.
+        self.alive.add(name)
+        if future.result().name:
             self.get_logger().info(f'Spawned {name}')
-        except Exception:
-            # Zajęta nazwa — turtlesim już ma ten żółw.
-            self.alive.add(name)
 
 
 def main(args=None):

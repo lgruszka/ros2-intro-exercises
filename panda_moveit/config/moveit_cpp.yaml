@@ -1,12 +1,12 @@
 # Konfiguracja MoveItPy (W8). Node z moveit_py sam ładuje plannery i scenę —
 # ten plik mówi mu, jak zbudować planning scene monitor i który pipeline włączyć.
+# Na Jazzy MoveItCpp czyta stąd tylko name, robot_description i
+# wait_for_initial_state_timeout. Topici są stałe: stan przegubów z /joint_states,
+# a scenę (stół, klocek, attach) node publikuje na /monitored_planning_scene -
+# ten topic ustaw w RViz w displayu PlanningScene.
 planning_scene_monitor_options:
   name: "planning_scene_monitor"
   robot_description: "robot_description"
-  joint_state_topic: "/joint_states"
-  attached_collision_object_topic: "/moveit_cpp/planning_scene_monitor"
-  publish_planning_scene_topic: "/moveit_cpp/publish_planning_scene"
-  monitored_planning_scene_topic: "/moveit_cpp/monitored_planning_scene"
   wait_for_initial_state_timeout: 10.0
 
 planning_pipelines:

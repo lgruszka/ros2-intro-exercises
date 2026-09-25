@@ -32,8 +32,13 @@ ros2 launch panda_moveit pick_place.launch.py
 ros2 run panda_moveit pick_place
 ```
 
-W RViz dodaj display **PlanningScene**, żeby widzieć stół, klocek i moment „attach"
-(klocek podróżuje z chwytakiem).
+W RViz dodaj display **PlanningScene** z topikiem `/monitored_planning_scene`, żeby widzieć stół,
+klocek i moment „attach" (klocek podróżuje z chwytakiem). Panel MotionPlanning z presetu W7
+w tym scenariuszu nie jest potrzebny (nie ma move_groupa) — jego błędy możesz zignorować.
+
+Po udanej sekwencji (`✓ pick & place zakończony`) proces potrafi skończyć się komunikatem
+`Segmentation fault` (exit 245). To błąd sprzątania moveit_py przy wyjściu, a nie Twojego kodu —
+ruch jest już wykonany.
 
 ## Pliki
 

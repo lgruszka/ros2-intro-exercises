@@ -30,8 +30,9 @@ Launch startuje turtlesim, spawnuje turtle2/turtle3, uruchamia choreographer i 3
 ## Strojenie
 
 ```bash
-ros2 param set /choreographer_node speed 0.3      # tempo
-# offset/krzywa: argumenty launch / parametry dancera
+ros2 param set /choreographer speed 0.3      # tempo
+ros2 param set /dancer_1 kp_lin 2.0       # wzmocnienia czytane co tick
+# phase_offset czytany tylko przy starcie: zmieniasz go w choreo.launch.py (OFFSETS)
 ```
 
 ## Pułapki

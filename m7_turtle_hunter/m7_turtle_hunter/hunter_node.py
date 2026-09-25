@@ -49,7 +49,7 @@ class HunterNode(Node):
 
     def on_prey_pose(self, name, msg):
         if name in self.recently_killed:
-            return                      # ignoruj „duchy" tuż po /kill
+            return                      # ignoruj „duchy” tuż po /kill
         self.prey_poses[name] = msg
 
     def _expire_killed(self):

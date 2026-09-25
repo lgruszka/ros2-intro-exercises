@@ -2,8 +2,8 @@
 
 KOLEJNOŚĆ:
     1) na ROBOCIE:  ros2 launch rosbot_bringup rosbot_xl.yaml
-    2) na ROBOCIE:  ros2 launch rplidar_ros rplidar_s3_launch.py serial_port:=/dev/ttyUSB1
-    3) gdziekolwiek: ros2 launch rosbot_nav nav.launch.py map:=$HOME/maps/moja_mapa.yaml
+    2) na ROBOCIE:  ros2 launch rplidar_ros rplidar_s3_launch.py serial_port:=/dev/ttyUSB1 frame_id:=rplidar_link
+    3) na LAPTOPIE: ros2 launch rosbot_nav nav.launch.py map:=$HOME/maps/moja_mapa.yaml
                      (wariant RPP: dopisz controller:=rpp)
     4) osobno:      rviz2   (NIE drugi nav.launch.py — mapa pojawi się w RViz sama)
 RViz (Fixed Frame = map): 2D Pose Estimate (gdzie stoi robot) → 2D Goal Pose (cel). Robot jedzie.
@@ -17,7 +17,7 @@ fałszywie by hamowały). Sam nav2_bringup NIE zlokalizuje ROSbota gołą ręką
 base_frame_id=base_footprint, a ROSbot ma base_link — nasz config to naprawia (+ enable_stamped_cmd_vel).
 
 ARGUMENTY: controller:=mppi (domyślnie; omija przeszkody) | rpp (prosty, szybki, przed przeszkodą staje),
-params_file:=<pełna ścieżka> nadpisuje oba. BLOKADA: jeśli w sieci (ten sam ROS_DOMAIN_ID) działa już
+params_file:=<pełna ścieżka> nadpisuje oba. BLOKADA: jeśli w tej domenie (ten sam ROS_DOMAIN_ID) działa już
 Nav2 (/bt_navigator), launch się NIE uruchomi — dwa Nav2 o tych samych nazwach ładują sobie nawzajem
 węzły do kontenerów i cele padają ("unknown goal response", "Goal failed"). Obejście: allow_duplicate:=true.
 """
@@ -62,9 +62,10 @@ def launch_setup(context):
     if (LaunchConfiguration('allow_duplicate').perform(context).lower() != 'true'
             and nav2_already_running()):
         return [
-            LogInfo(msg='[rosbot_nav] Nav2 JUŻ DZIAŁA w tej sieci (/bt_navigator) — NIE uruchamiam '
-                        'drugiego. Do podglądu mapy wystarczy samo: rviz2. Restart nawigacji: Ctrl+C '
-                        'w terminalu z działającym nav.launch.py i uruchom ponownie.'),
+            LogInfo(msg='[rosbot_nav] Nav2 JUŻ DZIAŁA w tej domenie '
+                        f'(ROS_DOMAIN_ID={os.environ.get("ROS_DOMAIN_ID", "0")}, /bt_navigator) — '
+                        'NIE uruchamiam drugiego. Do podglądu mapy wystarczy samo: rviz2. Restart '
+                        'nawigacji: Ctrl+C w terminalu z działającym nav.launch.py i uruchom ponownie.'),
             Shutdown(reason='Nav2 already running'),
         ]
 
@@ -114,6 +115,6 @@ def generate_launch_description():
             description='Pełna ścieżka do własnego pliku Nav2 (nadpisuje controller:=).'),
         DeclareLaunchArgument(
             'allow_duplicate', default_value='false',
-            description='true = pomiń blokadę drugiego Nav2 w tej samej sieci (tylko świadomie).'),
+            description='true = pomiń blokadę drugiego Nav2 w tej samej domenie (tylko świadomie).'),
         OpaqueFunction(function=launch_setup),
     ])

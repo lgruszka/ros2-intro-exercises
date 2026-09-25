@@ -11,7 +11,8 @@ Gdy scan zarysuje ściany → klik "Pokaż wartości do configu" i przepisz do
 pointcloud_to_laserscan.yaml (cloud_in/height/range) [+ static_tf_lidar jeśli
 zmieniałeś rotację].
 
-Wymaga: pip install PyQt6 ; robot online (publikuje /utlidar/cloud_base).
+Wymaga: sudo apt install -y python3-pyqt6  (nie pip - Ubuntu 24.04 blokuje pip
+systemowo, PEP 668); robot online (publikuje /utlidar/cloud_base).
 Uruchom: python3 tools/go2_scan_calib_gui.py   (env go2 + ros2 daemon stop)
 """
 from __future__ import annotations

@@ -65,10 +65,6 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument('nav2_start_delay', default_value='6.0',
             description='Opóźnienie (s) startu Nav2 — MUSI być > pointcloud_start_delay '
                         '(/scan przed AMCL/costmapami).'),
-        DeclareLaunchArgument('switch_to_normal', default_value='false',
-            description='Most wysyła StandUp(1004)+BalanceStand(1002) na starcie (FSM w tryb '
-                        'chodu PRZED Move). Ustaw true gdy Move odbija code=3202. '
-                        'UWAGA: robot fizycznie WSTANIE na starcie.'),
 
         # robot_state_publisher: TF base_link -> linki URDF.
         Node(package='robot_state_publisher', executable='robot_state_publisher',
@@ -87,10 +83,11 @@ def generate_launch_description() -> LaunchDescription:
              arguments=['0', '0', '0', '0', '0', '0', '1', 'base_link', 'base'],
              condition=IfCondition(LaunchConfiguration('enable_robot_model'))),
 
-        # Static TF base_link -> lidar (identity — cloud_base już w base_link).
+        # Static TF base_link -> lidar (identity, jak w mapping.launch.py — cloud_base jest
+        # już w base_link, a p2l ma target_frame base_link, więc ta ramka to tylko znacznik).
         Node(package='tf2_ros', executable='static_transform_publisher',
              name='static_tf_lidar',
-             arguments=['--x', '0.0', '--y', '0.0', '--z', '0.4',
+             arguments=['--x', '0.0', '--y', '0.0', '--z', '0.0',
                         '--frame-id', 'base_link',
                         '--child-frame-id', LaunchConfiguration('lidar_frame_id')]),
 
@@ -131,11 +128,10 @@ def generate_launch_description() -> LaunchDescription:
                          {'nav_topic': '/cmd_vel_smoothed'}]),
 
         # Most: /cmd_vel -> Unitree sport API (firmware). Caps zsynchronizowane z arbiter.
+        # Most NIE stawia robota - postaw go pilotem przed startem tego launcha.
         Node(package='go2_bridge', executable='unitree_cmd_vel_bridge_node',
              name='unitree_cmd_vel_bridge_node',
              parameters=[{
                  'max_vx': 1.0, 'max_vy': 0.5, 'max_vyaw': 1.5,
-                 'switch_to_normal': ParameterValue(
-                     LaunchConfiguration('switch_to_normal'), value_type=bool),
              }]),
     ])

@@ -19,8 +19,13 @@ KLUCZOWE: mapę buduj TYM SAMYM potokiem /scan, którym potem lokalizujesz (AMCL
 ten launch i nav.launch.py dzielą pointcloud_to_laserscan.yaml, więc mapa jest spójna.
 
 KLUCZOWE (Jazzy): slam_toolbox to węzeł LIFECYCLE — bez lifecycle_manager (autostart)
-startuje UNCONFIGURED i nie mapuje. QoS: p2l publikuje /scan best_effort, slam chce
-reliable → scan_qos_relay republikuje /scan -> /scan_reliable.
+startuje UNCONFIGURED i nie mapuje.
+
+QoS: p2l publikuje /scan jako BEST_EFFORT, a slam_toolbox subskrybuje skan profilem
+sensor_data (też BEST_EFFORT), więc czytałby /scan bezpośrednio. scan_qos_relay
+(/scan -> /scan_reliable, RELIABLE) zostaje, bo na tej konfiguracji stack był
+walidowany na robocie, a kopia RELIABLE przydaje się narzędziom z domyślnym QoS
+Reliable (np. display LaserScan w RViz). To wygoda, nie wymóg slam_toolbox.
 """
 from __future__ import annotations
 
@@ -61,8 +66,9 @@ def generate_launch_description() -> LaunchDescription:
             description='Źródło PointCloud2. /utlidar/cloud_base = firmware już w base_link '
                         '(zna montaż lidaru, bez ręcznej kalibracji). MUSI być to samo co w nav.'),
         DeclareLaunchArgument('scan_topic', default_value='/scan_reliable',
-            description='LaserScan dla slam_toolbox. /scan_reliable (NIE /scan): p2l publikuje '
-                        'best_effort, slam chce reliable → scan_qos_relay /scan -> /scan_reliable.'),
+            description='LaserScan dla slam_toolbox. Domyślnie /scan_reliable (kopia /scan z '
+                        'scan_qos_relay); /scan też zadziała, bo slam_toolbox subskrybuje '
+                        'profilem sensor_data (BEST_EFFORT).'),
         DeclareLaunchArgument('odom_topic', default_value='/utlidar/robot_odom',
             description='Odometria firmware Go2 (źródło dla odom_tf_relay -> TF odom->base_link).'),
         DeclareLaunchArgument('odom_frame', default_value='odom'),
@@ -101,7 +107,8 @@ def generate_launch_description() -> LaunchDescription:
                           'base_frame': base_frame, 'use_msg_frame_ids': False,
                           'use_msg_stamp': True}]),
 
-        # Relay QoS: /scan (best_effort) -> /scan_reliable (reliable dla slam).
+        # Relay QoS: /scan (best_effort) -> /scan_reliable (reliable). slam_toolbox go nie
+        # wymaga (subskrybuje sensor_data), ale kopia RELIABLE pasuje narzędziom z domyślnym QoS.
         Node(package='go2_bringup', executable='scan_qos_relay', name='scan_qos_relay',
              arguments=['--in', '/scan', '--out', '/scan_reliable']),
 

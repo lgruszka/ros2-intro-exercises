@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """Relay QoS dla LaserScan: best_effort IN → reliable OUT.
 
-Po co: pointcloud_to_laserscan publikuje /scan jako BEST_EFFORT (SensorDataQoS,
-zahardkodowane). slam_toolbox subskrybuje /scan jako RELIABLE → QoS incompatible →
-slam NIE dostaje skanów → brak mapy. AMCL (best_effort) działa, ale slam nie.
-Ten relay subskrybuje best_effort i republikuje jako reliable dla slam.
+Po co: pointcloud_to_laserscan publikuje /scan jako BEST_EFFORT (SensorDataQoS).
+Subskrybent RELIABLE (np. display LaserScan w RViz z domyślnym Reliability=Reliable
+albo własny węzeł z domyślnym QoS) nie dostanie od takiego publishera nic - w logu
+pojawi się WARN o niezgodnym QoS. Ten relay subskrybuje BEST_EFFORT i republikuje
+jako RELIABLE.
 
-Użycie:
-  ros2 run ... NIE — to skrypt:
-  python3 tools/scan_qos_relay.py --in /scan --out /scan_reliable
-Parametry ROS (gdy w launchu jako Node z executable nie zadziała — to plik):
-  używamy w mapping_real.launch jako ExecuteProcess / python.
+slam_toolbox tego NIE wymaga: subskrybuje skan profilem sensor_data (BEST_EFFORT),
+więc czytałby /scan bezpośrednio. mapping.launch.py podaje mu /scan_reliable, bo na
+tej konfiguracji stack był walidowany na robocie - to wygoda, nie wymóg.
+
+Użycie (w go2_bringup/launch/mapping.launch.py startuje automatycznie):
+  ros2 run go2_bringup scan_qos_relay --in /scan --out /scan_reliable
 """
 from __future__ import annotations
 import argparse, sys

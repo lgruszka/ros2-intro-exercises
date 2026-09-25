@@ -15,6 +15,9 @@ Liczy NA ŻYWO kluczowe metryki i pokazuje je z sparkline + auto-diagnozą:
 
 CSV log (przycisk) do offline korelacji score vs vyaw.
 
+Wymaga: sudo apt install -y python3-pyqt6  (nie pip - Ubuntu 24.04 blokuje pip
+systemowo, PEP 668).
+
 Uruchom (env go2 + stack działa, poza ustawiona):
   ros2 daemon stop; sleep 1
   python3 tools/go2_amcl_diag_gui.py

@@ -1,5 +1,5 @@
-# Trimmed nav2 params — Go2 quadruped (courier-go2 branch).
-# Real production params will be much longer; this is enough to start tuning.
+# Parametry Nav2 dla Unitree Go2 (kurs ROS2 Intro, warsztaty W5/W6).
+# Okrojona konfiguracja startowa - wystarcza do jazdy po mapie i dalszego strojenia.
 
 amcl:
   ros__parameters:
@@ -33,8 +33,9 @@ amcl:
     # ale dla ślizgającego odomu warto: ratuje z dryfu zamiast podążać za odomem.
     recovery_alpha_slow: 0.001
     recovery_alpha_fast: 0.1
-    # Auto-set initial pose: robot rusza phase1 z origin (0, 0, yaw=0), więc
-    # AMCL nie musi czekać na 2D Pose Estimate z RViz.
+    # Auto-poza startowa: AMCL startuje z (0, 0, yaw=0), czyli z miejsca, w którym
+    # zacząłeś mapowanie (tam jest początek układu map). Jeśli robot stoi gdzie indziej,
+    # popraw pozę przez 2D Pose Estimate w RViz - KIERUNEK strzałki jest krytyczny.
     set_initial_pose: true
     initial_pose:
       x: 0.0
@@ -64,16 +65,13 @@ controller_server:
 
     progress_checker:
       plugin: 'nav2_controller::SimpleProgressChecker'
-      required_movement_radius: 0.10  # 10 cm threshold (mac mocap is the bottleneck, not the planner)
-      movement_time_allowance: 30.0    # 30 s — bumped from 15 because mac mocap integrates slower
-                                        # than typical real-robot drive trains
+      required_movement_radius: 0.10  # robot musi przejść >=10 cm ...
+      movement_time_allowance: 30.0    # ... w ciągu 30 s, inaczej Nav2 uzna, że utknął
 
     goal_checker:
       plugin: 'nav2_controller::SimpleGoalChecker'
-      xy_goal_tolerance: 0.10      # tighter so robot lands centered before dock (was 0.20)
-      yaw_goal_tolerance: 0.20      # was 0.35 — tighter so dock starts from cleaner pose,
-                                     # so loose nav2 tolerance saves ~3-5 s of in-place rotation
-                                     # after retreat (when robot faces ~180° away from predock_yaw)
+      xy_goal_tolerance: 0.10      # 10 cm od celu = cel osiągnięty
+      yaw_goal_tolerance: 0.20      # ~11° tolerancji kierunku na końcu trasy
       stateful: true
 
     FollowPath:
@@ -82,8 +80,8 @@ controller_server:
       # `angular_dist_threshold`, the shim does an in-place rotation
       # before handing off to the primary controller. With
       # `rotate_to_goal_heading: true`, the same applies at the end of
-      # the path — solves the post-retreat ~180° turn problem where
-      # pure-pursuit oscillated trying to reach goal yaw.
+      # the path — pure-pursuit alone oscillates when it has to turn
+      # ~180° to reach the goal yaw.
       plugin: 'nav2_rotation_shim_controller::RotationShimController'
       primary_controller: 'nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController'
       angular_dist_threshold: 0.20           # 11° (było 17°). Szybki obrót-w-miejscu
@@ -146,15 +144,14 @@ local_costmap:
       resolution: 0.05
       footprint: '[[0.35, 0.16], [0.35, -0.16], [-0.35, -0.16], [-0.35, 0.16]]'  # Go2 z nogami ~0.70x0.31m (poprzednio wymiary G1 0.36x0.40 — za krotki, za szeroki)
       plugins: ['obstacle_layer', 'inflation_layer']  # 2D obstacle_layer instead of voxel_layer —
-                                                        # mac /scan is single 2D ring; 3D voxelization
+                                                        # /scan is a single 2D ring; 3D voxelization
                                                         # with z=0..1.5 from one slice produces phantom
                                                         # vertical obstacles that confuse the controller
       inflation_layer:
         plugin: 'nav2_costmap_2d::InflationLayer'
         cost_scaling_factor: 3.0
-        inflation_radius: 0.20       # safety margin around table A/B; map noise was
-                                      # cleaned by connected-component filter (size<5
-                                      # removed) so we can afford realistic inflation
+        inflation_radius: 0.20       # margines wokół przeszkód w lokalnej costmapie
+                                      # (szum mapy czyścisz tools/clean_map.py)
       obstacle_layer:
         plugin: 'nav2_costmap_2d::ObstacleLayer'
         enabled: true
@@ -221,17 +218,20 @@ behavior_server:
     transform_tolerance: 0.2
     use_sim_time: false
 
-# Stub configs for nav2 bringup nodes we don't actively use. Empty
-# lists ('[]') and dicts ('{}') confuse the parameter parser ('expected
-# float/int/str/bool/bytes, got tuple ()'), so we supply one disabled item
-# of the right type instead — node configures cleanly but does nothing.
+# collision_monitor jest w tym pakiecie WYŁĄCZONY (zaślepka): bringup Nav2 go
+# uruchamia, więc potrzebuje poprawnych parametrów, ale nie siedzi w torze sterowania
+# (arbiter czyta /cmd_vel_smoothed prosto z velocity_smoother). Przed przeszkodami
+# chronią robota tylko costmapy i controller - dlatego pierwsze jazdy rób wolno,
+# z pilotem w ręku (W6, sekcja 7). Żeby go włączyć: cmd_vel_in_topic: /cmd_vel_smoothed,
+# wyjście na nowy topic, arbiter nav_topic na to wyjście (nav.launch.py), prawdziwe
+# źródło /scan i polygon z enabled: true - i przetestuj to najpierw na podniesionym robocie.
+# Puste listy ('[]') i słowniki ('{}') psują parser parametrów ('expected
+# float/int/str/bool/bytes, got tuple ()'), stąd jeden wyłączony element właściwego typu.
 collision_monitor:
   ros__parameters:
     base_frame_id: base_link
     odom_frame_id: odom
-    # cmd_vel routed through unused topics so collision_monitor doesn't
-    # fight our /cmd_vel pipeline (controller_server → /cmd_vel direct,
-    # plus dock/retreat → /cmd_vel direct).
+    # Nieużywane topici, żeby collision_monitor nie wchodził w tor /cmd_vel.
     cmd_vel_in_topic: /cmd_vel_unused_in
     cmd_vel_out_topic: /cmd_vel_unused_out
     state_topic: /collision_monitor_state
@@ -248,7 +248,7 @@ collision_monitor:
       simulation_time_step: 0.1
       min_points: 6
       visualize: false
-      enabled: false   # disabled — robot welded, no need for collision check
+      enabled: false   # wyłączone - patrz komentarz nad collision_monitor
     observation_sources: ['unused_scan']
     unused_scan:
       type: 'scan'
@@ -262,7 +262,7 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: false
     feedback: 'OPEN_LOOP'
-    max_velocity: [1.0, 0.5, 2.0]    # Go2 quadruped — wyższy niż G1 biped (0.6/0.4)
+    max_velocity: [1.0, 0.5, 2.0]    # limity Go2 (vx, vy, wz); na pierwsze jazdy obniż (W6, sekcja 7)
     min_velocity: [-1.0, -0.5, -2.0]
     max_accel: [2.5, 2.5, 3.2]
     max_decel: [-2.5, -2.5, -3.2]
@@ -288,9 +288,8 @@ waypoint_follower:
 # opennav_docking::DockingServer requires `dock_plugins` to be declared at
 # minimum, otherwise lifecycle configure aborts with "Charging dock plugins
 # not given!" and the whole nav2 stack fails to bring up. We supply one
-# disabled simple charging dock just to satisfy the validator. Our actual
-# table docking is handled by g1_courier_docking.dock_action_server (three
-# modes), not opennav_docking — so this stub is never invoked.
+# simple charging dock just to satisfy the validator. This package does no
+# docking, so the stub is never invoked.
 docking_server:
   ros__parameters:
     controller_frequency: 50.0

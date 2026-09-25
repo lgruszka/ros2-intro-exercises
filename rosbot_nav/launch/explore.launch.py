@@ -6,8 +6,8 @@ explore), więc po bringupie + lidarze wystarczy JEDEN dodatkowy terminal.
 
 KOLEJNOŚĆ:
     1) na ROBOCIE:  ros2 launch rosbot_bringup rosbot_xl.yaml
-    2) na ROBOCIE:  ros2 launch rplidar_ros rplidar_s3_launch.py serial_port:=/dev/ttyUSB1
-    3) gdziekolwiek: ros2 launch rosbot_nav explore.launch.py        # slam+nav2+explore (use_sim_time:=false)
+    2) na ROBOCIE:  ros2 launch rplidar_ros rplidar_s3_launch.py serial_port:=/dev/ttyUSB1 frame_id:=rplidar_link
+    3) na LAPTOPIE: ros2 launch rosbot_nav explore.launch.py         # slam+nav2+explore (use_sim_time:=false)
     4) gdy zwiedzi:  ros2 run nav2_map_server map_saver_cli -f ~/maps/sala1
 
 WYMAGANIA (raz): explore_lite + jego msgs ze źródeł (NIE ma w apt — buduj OBA):

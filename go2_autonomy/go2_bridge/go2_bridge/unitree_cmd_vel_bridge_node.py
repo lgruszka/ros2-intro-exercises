@@ -6,6 +6,7 @@ import time
 import rclpy
 from geometry_msgs.msg import Twist
 from rclpy.node import Node
+from rclpy.signals import SignalHandlerOptions
 from std_msgs.msg import Bool
 from unitree_api.msg import Request, Response
 
@@ -29,11 +30,6 @@ class UnitreeCmdVelBridgeNode(Node):
         self.declare_parameter('cmd_timeout_s', 0.5)
         self.declare_parameter('publish_rate_hz', 10.0)
         self.declare_parameter('api_response_topic', '/api/sport/response')
-        self.declare_parameter('switch_to_normal', False)
-        self.declare_parameter('startup_delay_s', 1.5)
-        self.declare_parameter('start_fsm_id', 500)
-        self.declare_parameter('enable_balance_mode', True)
-        self.declare_parameter('balance_mode', 1)
         self.declare_parameter('velocity_duration_s', 0.2)
         self.declare_parameter('log_cmd_vel_rx', True)
         self.declare_parameter('log_cmd_vel_tx', True)
@@ -63,11 +59,6 @@ class UnitreeCmdVelBridgeNode(Node):
         self.api_response_topic = self.get_parameter(
             'api_response_topic'
         ).get_parameter_value().string_value
-        self.switch_to_normal = self.get_parameter('switch_to_normal').get_parameter_value().bool_value
-        self.startup_delay_s = float(self.get_parameter('startup_delay_s').get_parameter_value().double_value)
-        self.start_fsm_id = int(self.get_parameter('start_fsm_id').get_parameter_value().integer_value)
-        self.enable_balance_mode = self.get_parameter('enable_balance_mode').get_parameter_value().bool_value
-        self.balance_mode = int(self.get_parameter('balance_mode').get_parameter_value().integer_value)
         self.velocity_duration_s = float(
             self.get_parameter('velocity_duration_s').get_parameter_value().double_value
         )
@@ -86,15 +77,8 @@ class UnitreeCmdVelBridgeNode(Node):
         # src/include/common/ros2_sport_client.h)
         self.api_id_move = 1008          # ROBOT_SPORT_API_ID_MOVE
         self.api_id_stop = 1003          # ROBOT_SPORT_API_ID_STOPMOVE
-        self.api_id_damp = 1001          # ROBOT_SPORT_API_ID_DAMP
-        self.api_id_balancestand = 1002  # ROBOT_SPORT_API_ID_BALANCESTAND
-        self.api_id_standup = 1004       # ROBOT_SPORT_API_ID_STANDUP
-        # NOTE: Go2 nie wymaga SetFsm / SetBalanceMode jak G1 — sport API
-        # zarządza FSM samo. Startup sequence wyłączone (switch_to_normal
-        # zostawione jako no-op fallback).
-        self.api_id_set_fsm = None
-        self.api_id_set_balance_mode = None
-        self.api_id_motion_release = self.api_id_stop
+        # Most NIE stawia robota (brak StandUp/BalanceStand na starcie). Go2 sport API
+        # samo zarządza trybem - robota stawiasz pilotem, ZANIM uruchomisz nav.launch.py.
 
         self.last_twist = Twist()
         self.last_cmd_time = self.get_clock().now()
@@ -127,8 +111,6 @@ class UnitreeCmdVelBridgeNode(Node):
             f'Bridge online: {self.cmd_vel_topic} -> {self.unitree_request_topic}, rate={publish_rate}Hz'
         )
 
-        #self._send_startup_sequence()
-
     def _publish_api(self, api_id: int, payload: dict | None, tag: str) -> int:
         """
         Cel: Ta metoda realizuje odpowiedzialność `_publish_api` w aktualnym module.
@@ -142,23 +124,6 @@ class UnitreeCmdVelBridgeNode(Node):
         self.unitree_pub.publish(req)
         self.sent_ids[req_id] = tag
         return req_id
-
-    def _send_startup_sequence(self) -> None:
-        """Go2 sport API zarządza FSM samodzielnie — startup sequence to
-        co najwyżej StandUp (1004) + BalanceStand (1002). Wywoływane
-        tylko jeśli user explicit przez switch_to_normal."""
-        if not self.switch_to_normal:
-            return
-        req_id = self._publish_api(self.api_id_standup, {}, 'standup')
-        self.get_logger().info(
-            f'StandUp sent (api_id={self.api_id_standup}, req_id={req_id}), '
-            f'waiting {self.startup_delay_s:.1f}s'
-        )
-        time.sleep(max(0.0, self.startup_delay_s))
-        req_id = self._publish_api(self.api_id_balancestand, {}, 'balancestand')
-        self.get_logger().info(
-            f'BalanceStand sent (api_id={self.api_id_balancestand}, req_id={req_id})'
-        )
 
     def get_next_id(self) -> int:
         """
@@ -271,8 +236,13 @@ class UnitreeCmdVelBridgeNode(Node):
 
         self._last_subscribers_log_time = now
         count = self.unitree_pub.get_subscription_count()
-        level = self.get_logger().warn if count == 0 else self.get_logger().info
-        level(f'{self.unitree_request_topic} subscribers={count}')
+        # Dwa osobne wywołania: rclpy nie pozwala zmieniać poziomu logu w jednym miejscu kodu
+        # (ValueError „Logger severity cannot be changed between calls” wywracał most, gdy
+        # liczba subskrybentów zmieniała się z 0 na 1, np. robot pojawił się w sieci po starcie).
+        if count == 0:
+            self.get_logger().warn(f'{self.unitree_request_topic} subscribers=0')
+        else:
+            self.get_logger().info(f'{self.unitree_request_topic} subscribers={count}')
 
     def _maybe_log_tx(
         self, req_id: int, cmd_age_s: float, vx: float, vy: float, vyaw: float, duration: float
@@ -330,15 +300,21 @@ def main(args=None) -> None:
     Cel: Ta funkcja realizuje odpowiedzialność `main` w aktualnym module.
     Dlaczego tak: Wydzielenie tej jednostki upraszcza debugowanie i chroni krytyczne ścieżki przed niekontrolowanymi zmianami.
     """
-    rclpy.init(args=args)
+    # Handler sygnałów rclpy wyłączony: wtedy Ctrl+C (SIGINT) to zwykły KeyboardInterrupt,
+    # a kontekst ROS jeszcze działa, więc StopMove (1003) zdąży wyjść do robota. Z domyślnym
+    # handlerem Jazzy zamyka kontekst i spin() kończy się ExternalShutdownException - wtedy
+    # send_stop() by się nie wykonał. Mimo to: najpierw zatrzymaj robota (E-Stop/pilot),
+    # potem zamykaj procesy - zabicie procesu (np. SIGKILL) nie wyśle już niczego.
+    rclpy.init(args=args, signal_handler_options=SignalHandlerOptions.NO)
     node = UnitreeCmdVelBridgeNode()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
+        node._last_stop_send_monotonic = 0.0  # pomiń limit częstotliwości - stop musi wyjść
         node.send_stop()
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        rclpy.try_shutdown()
 
 
 if __name__ == '__main__':
