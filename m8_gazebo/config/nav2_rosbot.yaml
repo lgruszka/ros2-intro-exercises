@@ -3,7 +3,10 @@
 # z JEDNĄ kluczową zmianą: base_footprint -> base_link (ROSbot nie ma base_footprint,
 # inaczej AMCL nie zlokalizuje — analogicznie do base_frame w slam_rosbot.yaml).
 # + odom_topic -> /odometry/filtered (ROSbot publikuje EKF, nie /odom).
-# Pozę startową podajesz w RViz (2D Pose Estimate) — set_initial_pose zostaje domyślne.
+# + set_initial_pose: true, initial_pose = (0,0,0): robot stoi tam, gdzie zaczynałeś mapowanie
+#   (origin mapy z slam.launch.py = punkt spawnu). Bez tego lifecycle_manager przerywa bringup
+#   po ok. 3 s („transform from base_link to map did not become available”), zanim zdążysz
+#   kliknąć 2D Pose Estimate. Jeśli robot stoi gdzie indziej - popraw pozę w RViz (2D Pose Estimate).
 #
 amcl:
   ros__parameters:
@@ -44,6 +47,8 @@ amcl:
     z_rand: 0.5
     z_short: 0.05
     scan_topic: scan
+    set_initial_pose: true
+    initial_pose: {x: 0.0, y: 0.0, z: 0.0, yaw: 0.0}
 
 bt_navigator:
   ros__parameters:

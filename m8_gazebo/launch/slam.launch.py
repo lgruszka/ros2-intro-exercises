@@ -4,8 +4,9 @@ Uruchom NAJPIERW symulację z lidarem:
     ros2 launch rosbot_gazebo simulation.yaml robot_model:=rosbot_xl configuration:=autonomy
 potem ten launch:
     ros2 launch m8_gazebo slam.launch.py use_sim_time:=true      # na realnym robocie: false
-jeźdź teleopem (Jazzy: /cmd_vel to TwistStamped, stąd stamped:=true):
-    ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -p stamped:=true
+jeźdź teleopem (ROSbot przyjmuje TwistStamped -> stamped:=true; w symulacji zegar Gazebo
+-> use_sim_time:=true, inaczej robot stoi; manual/cmd_vel = wejście operatora w twist_mux):
+    ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -p stamped:=true -p use_sim_time:=true -r cmd_vel:=manual/cmd_vel
 i na końcu zapisz mapę:
     ros2 run nav2_map_server map_saver_cli -f ~/maps/moja_mapa
 

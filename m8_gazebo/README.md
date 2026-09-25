@@ -6,8 +6,10 @@ Harmonic na własnym komputerze **oraz na realnym robocie**. Uzupełnienie modu�
 
 ## Trzy tryby
 
-Ten sam zestaw plików daje trzy tryby pracy. Sim ↔ realny robot różni się **tylko** flagą
-`use_sim_time` (`true` w Gazebo, `false` na sprzęcie) plus bringupem realnego robota.
+Ten sam zestaw plików daje trzy tryby pracy w symulacji i na realnym robocie. Polecenia różnią się
+flagą `use_sim_time` (`true` w Gazebo, `false` na sprzęcie) i bringupem realnego robota zamiast
+symulacji; na sprzęcie dochodzą też sieć, synchronizacja zegarów i realne zakłócenia pomiarów
+(patrz sekcja „Realny robot”).
 
 | # | Tryb | Polecenie (po starcie symulacji / bringupu) | Efekt |
 |---|------|----------------------------------------------|-------|
@@ -23,7 +25,12 @@ Ten sam zestaw plików daje trzy tryby pracy. Sim ↔ realny robot różni się 
 
 ## Wymagania wstępne
 
-1. Zbudowany `rosbot_ros` (klon + vcs + colcon — patrz moduł M8, sekcja 3).
+1. Zbudowany `rosbot_ros` w wersji **1.2.2** (klon + vcs + colcon — patrz moduł M8, sekcja 3):
+   ```bash
+   git clone -b 1.2.2 https://github.com/husarion/rosbot_ros.git
+   ```
+   Tag jest ważny: gałąź `jazzy` od wersji 1.2.3 w symulacji nie przekazuje lidaru (`/scan`)
+   ani kamery do ROS 2, więc żaden z trybów nie zadziała.
 2. Paczki z apt:
    ```bash
    sudo apt install -y ros-jazzy-slam-toolbox ros-jazzy-nav2-bringup ros-jazzy-nav2-map-server \
@@ -53,12 +60,16 @@ ros2 launch rosbot_gazebo simulation.yaml robot_model:=rosbot_xl configuration:=
 # 2) SLAM (box-filter + slam_toolbox; base_frame=base_link, scan_topic=/scan_filtered)
 ros2 launch m8_gazebo slam.launch.py use_sim_time:=true
 
-# 3) Jeźdź, żeby budować mapę  (Jazzy: stamped:=true KONIECZNE — /cmd_vel to TwistStamped)
-ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -p stamped:=true
+# 3) Jeźdź, żeby budować mapę. ROSbot przyjmuje TwistStamped (stamped:=true), a w symulacji
+#    znaczniki czasu muszą iść z zegara Gazebo (use_sim_time:=true) - inaczej robot stoi.
+#    manual/cmd_vel = wejście operatora w twist_mux ROSbota.
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -p stamped:=true -p use_sim_time:=true -r cmd_vel:=manual/cmd_vel
 
 # 4) Zapisz mapę (powstaną moja_mapa.pgm + moja_mapa.yaml)
 mkdir -p ~/maps
 ros2 run nav2_map_server map_saver_cli -f ~/maps/moja_mapa
+#    "Failed to spin map subscription" = /map nie dotarła w ok. 2 s. Powtórz po chwili albo:
+#    ros2 run nav2_map_server map_saver_cli -f ~/maps/moja_mapa --ros-args -p save_map_timeout:=10.0
 ```
 
 Sanity-check (drugi terminal) — to MUSI zwracać transform, nie „frame does not exist":
@@ -90,8 +101,10 @@ ros2 launch m8_gazebo nav.launch.py map:=$HOME/maps/moja_mapa.yaml use_sim_time:
 ```
 
 W RViz (`rviz2 --ros-args -p use_sim_time:=true`), *Fixed Frame* = `map`:
-1. **2D Pose Estimate** → kliknij gdzie stoi robot i przeciągnij w kierunku patrzenia (kierunek
-   strzałki krytyczny). Publikuje `/initialpose`, AMCL się lokalizuje.
+1. AMCL startuje z pozą (0, 0, 0), czyli z miejsca, w którym zaczynałeś mapowanie (tam też
+   spawnuje się robot). Jeśli robot stoi gdzie indziej, użyj **2D Pose Estimate**: kliknij, gdzie
+   stoi robot, i przeciągnij w kierunku patrzenia (kierunek strzałki jest ważny). Publikuje to
+   `/initialpose` i AMCL poprawia lokalizację.
 2. **2D Goal Pose** → kliknij cel (publikuje `/goal_pose`). Robot pojedzie.
 
 Dodaj panele: Map (`/map`, Durability **Transient Local**), Path (`/plan`), LaserScan (`/scan`).

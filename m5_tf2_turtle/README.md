@@ -27,15 +27,30 @@ ros2 launch m5_tf2_turtle turtle_tf2.launch.py
 ros2 run turtlesim turtle_teleop_key
 ```
 
-## Podgląd
+## Podgląd w RViz
 
-Foxglove (ws://localhost:8765) -> panel 3D: dodaj TF, zobacz drzewo `world -> turtle1 / turtle2`.
-Albo `ros2 run tf2_tools view_frames` (PDF z drzewem) i `ros2 run tf2_ros tf2_echo turtle2 turtle1`.
+```bash
+rviz2
+```
+
+W RViz ustaw **Global Options → Fixed Frame** na `world`, potem **Add → TF** i zaznacz
+**Show Names**. Zobaczysz ramki `turtle1` i `turtle2` poruszające się na żywo względem `world`.
+
+Z terminala:
+
+```bash
+ros2 run tf2_tools view_frames              # PDF z drzewem world -> turtle1 / turtle2
+ros2 run tf2_ros tf2_echo turtle2 turtle1   # położenie turtle1 w układzie turtle2
+```
+
+Opcjonalnie możesz też użyć Foxglove (panel 3D z warstwą TF), ale RViz wystarcza.
 
 ## Uwaga (Jazzy)
 
 `lookup_transform(target, source)` — target PIERWSZY. Tu `('turtle2','turtle1')`: pozycja turtle1
-w układzie turtle2. W CLI `tf2_echo` jest ODWROTNIE (source pierwszy).
+w układzie turtle2. Kolejność w CLI jest taka sama: `tf2_echo A B` = `lookup_transform(A, B)`,
+czyli położenie B wyrażone w układzie A. Nie sugeruj się nazwami `source`/`target` w komunikacie
+usage narzędzia.
 
 ## Stretch
 

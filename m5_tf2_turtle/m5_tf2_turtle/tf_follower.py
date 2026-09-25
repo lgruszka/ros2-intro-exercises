@@ -2,6 +2,7 @@ import math
 
 import rclpy
 from rclpy.node import Node
+from rclpy.executors import ExternalShutdownException
 from rclpy.time import Time
 from geometry_msgs.msg import Twist
 from tf2_ros import Buffer, TransformListener, TransformException
@@ -36,8 +37,14 @@ class TurtleFollower(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    rclpy.spin(TurtleFollower())
-    rclpy.shutdown()
+    node = TurtleFollower()
+    try:
+        rclpy.spin(node)
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass  # Ctrl+C = normalne zakończenie, bez tracebacku
+    finally:
+        node.destroy_node()
+        rclpy.try_shutdown()
 
 
 if __name__ == '__main__':

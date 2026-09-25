@@ -15,6 +15,7 @@ import rclpy
 from cv_bridge import CvBridge
 from geometry_msgs.msg import PointStamped
 from rclpy.node import Node
+from rclpy.executors import ExternalShutdownException
 from sensor_msgs.msg import Image
 
 # Zakres ZIELONEGO w HSV (OpenCV: H 0-179, S/V 0-255)
@@ -49,10 +50,16 @@ class ColorDetector(Node):
         # ...
 
 
-def main():
-    rclpy.init()
-    rclpy.spin(ColorDetector())
-    rclpy.shutdown()
+def main(args=None):
+    rclpy.init(args=args)
+    node = ColorDetector()
+    try:
+        rclpy.spin(node)
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass  # Ctrl+C = normalne zakończenie, bez tracebacku
+    finally:
+        node.destroy_node()
+        rclpy.try_shutdown()
 
 
 if __name__ == '__main__':

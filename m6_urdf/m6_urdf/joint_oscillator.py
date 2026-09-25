@@ -2,6 +2,7 @@ import math
 
 import rclpy
 from rclpy.node import Node
+from rclpy.executors import ExternalShutdownException
 from sensor_msgs.msg import JointState
 
 
@@ -30,8 +31,14 @@ class JointOscillator(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    rclpy.spin(JointOscillator())
-    rclpy.shutdown()
+    node = JointOscillator()
+    try:
+        rclpy.spin(node)
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass  # Ctrl+C = normalne zakończenie, bez tracebacku
+    finally:
+        node.destroy_node()
+        rclpy.try_shutdown()
 
 
 if __name__ == '__main__':

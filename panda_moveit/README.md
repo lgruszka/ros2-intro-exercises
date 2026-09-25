@@ -6,7 +6,10 @@ Pakiet ćwiczeń do manipulacji: **pick & place** na ramieniu Franka Emika Panda
 ## Instalacja
 
 ```bash
-sudo apt install -y ros-jazzy-moveit ros-jazzy-moveit-py ros-jazzy-moveit-resources-panda-moveit-config
+sudo apt install -y ros-jazzy-moveit ros-jazzy-moveit-py ros-jazzy-moveit-resources-panda-moveit-config \
+  ros-jazzy-ros2-controllers ros-jazzy-ros2controlcli
+# ros2_controllers = JointTrajectoryController + JointStateBroadcaster (bez nich ramię nie wykona planu),
+# ros2controlcli = polecenie `ros2 control`
 cd ~/ros2_ws
 colcon build --symlink-install --packages-select panda_moveit
 source install/setup.bash

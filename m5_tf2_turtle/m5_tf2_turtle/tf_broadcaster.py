@@ -2,6 +2,7 @@ import math
 
 import rclpy
 from rclpy.node import Node
+from rclpy.executors import ExternalShutdownException
 from geometry_msgs.msg import TransformStamped
 from tf2_ros import TransformBroadcaster
 from turtlesim.msg import Pose
@@ -33,8 +34,14 @@ class TurtleTfBroadcaster(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    rclpy.spin(TurtleTfBroadcaster())
-    rclpy.shutdown()
+    node = TurtleTfBroadcaster()
+    try:
+        rclpy.spin(node)
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass  # Ctrl+C = normalne zakończenie, bez tracebacku
+    finally:
+        node.destroy_node()
+        rclpy.try_shutdown()
 
 
 if __name__ == '__main__':

@@ -13,6 +13,7 @@ import numpy as np
 import rclpy
 from cv_bridge import CvBridge
 from rclpy.node import Node
+from rclpy.executors import ExternalShutdownException
 from sensor_msgs.msg import Image
 
 W, H = 320, 240
@@ -48,10 +49,16 @@ class ToyCamera(Node):
         self.pub.publish(msg)
 
 
-def main():
-    rclpy.init()
-    rclpy.spin(ToyCamera())
-    rclpy.shutdown()
+def main(args=None):
+    rclpy.init(args=args)
+    node = ToyCamera()
+    try:
+        rclpy.spin(node)
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass  # Ctrl+C = normalne zakończenie, bez tracebacku
+    finally:
+        node.destroy_node()
+        rclpy.try_shutdown()
 
 
 if __name__ == '__main__':
