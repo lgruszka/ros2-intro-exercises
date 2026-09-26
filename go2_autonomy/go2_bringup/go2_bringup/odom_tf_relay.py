@@ -53,7 +53,7 @@ class OdomTfRelay(Node):
                 child = msg_child
 
         if parent == child:
-            self.get_logger().warn(
+            self.get_logger().warning(
                 f"Skipping TF publish because parent and child frame are identical ('{parent}')."
             )
             return

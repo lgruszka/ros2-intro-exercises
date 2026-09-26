@@ -123,6 +123,31 @@ Skrypt sprawdza:
 - **Argument nie działa**: pamiętaj o `LaunchConfiguration('rate')` zamiast literalnego stringa `'rate'`.
 - **Monitor nic nie loguje**: countery używają topiku `count` (relative). Musisz remappować do `count_a`/`count_b` w launch.
 
+## Pakiet `intro_launch`: drabinka „Launch w przeglądarce” na Ubuntu
+
+W module M5 piszesz w przeglądarce plik `turtle.launch.py` (etapy L1-L3). Ten sam plik uruchomisz na
+Ubuntu 24.04 + ROS 2 Jazzy z pakietem `intro_launch`, który leży obok `intro_demo`:
+
+```
+m4_launch/intro_launch/
+├── package.xml, setup.py, setup.cfg, resource/intro_launch
+├── launch/turtle.launch.py          # szkielet z TODO L1 - wklej tu swój plik z przeglądarki
+└── intro_launch/circle_driver.py    # gotowy node (entry point circle_driver), jak w przeglądarce
+```
+
+```bash
+sudo apt install ros-jazzy-turtlesim          # jeśli jeszcze go nie masz
+cd ~/ros2_ws
+colcon build --packages-select intro_launch --symlink-install
+source install/setup.bash
+ros2 launch intro_launch turtle.launch.py speed:=2.0
+```
+
+Argument `speed:=2.0` działa dopiero po etapie L3 (`DeclareLaunchArgument` + `LaunchConfiguration`).
+Sprawdź wynik w drugim terminalu: `ros2 node list` pokazuje `/sim` i `/driver_alfa`, a
+`ros2 param get /driver_alfa speed` zwraca `Double value is: 2.0`. Po zmianie pliku launch uruchom
+`colcon build` ponownie albo zbuduj pakiet z `--symlink-install` (jak wyżej).
+
 ## Materiał referencyjny
 
 - Module 4 (lekcja w SPA): https://lucsrobotics.com/ros2-intro/

@@ -11,15 +11,9 @@ from std_msgs.msg import Bool
 from unitree_api.msg import Request, Response
 
 class UnitreeCmdVelBridgeNode(Node):
-    """
-    Cel: Ta klasa realizuje odpowiedzialność `UnitreeCmdVelBridgeNode` w aktualnym module.
-    Dlaczego tak: Wydzielenie tej jednostki upraszcza debugowanie i chroni krytyczne ścieżki przed niekontrolowanymi zmianami.
-    """
+    """Most /cmd_vel (Twist) -> Go2 sport API (unitree_api/Request na api/sport/request)."""
     def __init__(self) -> None:
-        """
-        Cel: Ta metoda realizuje odpowiedzialność `__init__` w aktualnym module.
-        Dlaczego tak: Wydzielenie tej jednostki upraszcza debugowanie i chroni krytyczne ścieżki przed niekontrolowanymi zmianami.
-        """
+        """Parametry (limity prędkości, timeout, częstotliwość), subskrypcje /cmd_vel i E-Stopu, publisher API, timer send_move."""
         super().__init__('unitree_cmd_vel_bridge_node')
 
         self.declare_parameter('cmd_vel_topic', '/cmd_vel')
@@ -112,10 +106,7 @@ class UnitreeCmdVelBridgeNode(Node):
         )
 
     def _publish_api(self, api_id: int, payload: dict | None, tag: str) -> int:
-        """
-        Cel: Ta metoda realizuje odpowiedzialność `_publish_api` w aktualnym module.
-        Dlaczego tak: Wydzielenie tej jednostki upraszcza debugowanie i chroni krytyczne ścieżki przed niekontrolowanymi zmianami.
-        """
+        """Wysyła Request z kolejnym id i api_id; zapamiętuje id w sent_ids, żeby sparować odpowiedź."""
         req = Request()
         req_id = self.get_next_id()
         req.header.identity.id = req_id
@@ -126,26 +117,15 @@ class UnitreeCmdVelBridgeNode(Node):
         return req_id
 
     def get_next_id(self) -> int:
-        """
-        Cel: Ta metoda realizuje odpowiedzialność `get_next_id` w aktualnym module.
-        Dlaczego tak: Wydzielenie tej jednostki upraszcza debugowanie i chroni krytyczne ścieżki przed niekontrolowanymi zmianami.
-        """
         self.request_id += 1
         return self.request_id
 
     @staticmethod
     def clamp(value: float, min_val: float, max_val: float) -> float:
-        """
-        Cel: Ta metoda realizuje odpowiedzialność `clamp` w aktualnym module.
-        Dlaczego tak: Wydzielenie tej jednostki upraszcza debugowanie i chroni krytyczne ścieżki przed niekontrolowanymi zmianami.
-        """
         return max(min_val, min(max_val, value))
 
     def cmd_vel_callback(self, msg: Twist) -> None:
-        """
-        Cel: Ta metoda realizuje odpowiedzialność `cmd_vel_callback` w aktualnym module.
-        Dlaczego tak: Wydzielenie tej jednostki upraszcza debugowanie i chroni krytyczne ścieżki przed niekontrolowanymi zmianami.
-        """
+        """Zapamiętuje ostatnią komendę i jej czas (watchdog w send_move); log rx najwyżej co log_interval_s."""
         self.last_twist = msg
         self.last_cmd_time = self.get_clock().now()
         if self.log_cmd_vel_rx:
@@ -164,10 +144,7 @@ class UnitreeCmdVelBridgeNode(Node):
                     )
 
     def send_move(self) -> None:
-        """
-        Cel: Ta metoda realizuje odpowiedzialność `send_move` w aktualnym module.
-        Dlaczego tak: Wydzielenie tej jednostki upraszcza debugowanie i chroni krytyczne ścieżki przed niekontrolowanymi zmianami.
-        """
+        """Timer (publish_rate_hz): przy E-Stopie StopMove 1003; po cmd_timeout_s zero; inaczej clamp do max_v* i Move 1008 {x, y, z}."""
         self._maybe_log_topic_subscribers()
         if self._estop_active:
             self.last_twist = Twist()
@@ -203,10 +180,7 @@ class UnitreeCmdVelBridgeNode(Node):
         self._maybe_log_tx(req_id, elapsed, vx, vy, vyaw, duration)
 
     def _on_response(self, msg: Response) -> None:
-        """
-        Cel: Ta metoda realizuje odpowiedzialność `_on_response` w aktualnym module.
-        Dlaczego tak: Wydzielenie tej jednostki upraszcza debugowanie i chroni krytyczne ścieżki przed niekontrolowanymi zmianami.
-        """
+        """Paruje odpowiedź API z wysłaną komendą (sent_ids) i loguje WARN, gdy code != 0 (np. 3202 = zły format)."""
         req_id = int(msg.header.identity.id)
         tag = self.sent_ids.pop(req_id, None)
         if tag is None:
@@ -214,17 +188,14 @@ class UnitreeCmdVelBridgeNode(Node):
 
         code = int(msg.header.status.code)
         if code != 0:
-            self.get_logger().warn(
+            self.get_logger().warning(
                 'Unitree API error: '
                 f'tag={tag}, req_id={req_id}, api_id={msg.header.identity.api_id}, '
                 f'code={code}, data={msg.data}'
             )
 
     def _maybe_log_topic_subscribers(self) -> None:
-        """
-        Cel: Ta metoda realizuje odpowiedzialność `_maybe_log_topic_subscribers` w aktualnym module.
-        Dlaczego tak: Wydzielenie tej jednostki upraszcza debugowanie i chroni krytyczne ścieżki przed niekontrolowanymi zmianami.
-        """
+        """Co log_interval_s: ilu subskrybentów ma topic API (0 = robot nie słucha, np. brak sieci)."""
         if not self.log_subscribers:
             return
 
@@ -240,17 +211,14 @@ class UnitreeCmdVelBridgeNode(Node):
         # (ValueError „Logger severity cannot be changed between calls” wywracał most, gdy
         # liczba subskrybentów zmieniała się z 0 na 1, np. robot pojawił się w sieci po starcie).
         if count == 0:
-            self.get_logger().warn(f'{self.unitree_request_topic} subscribers=0')
+            self.get_logger().warning(f'{self.unitree_request_topic} subscribers=0')
         else:
             self.get_logger().info(f'{self.unitree_request_topic} subscribers={count}')
 
     def _maybe_log_tx(
         self, req_id: int, cmd_age_s: float, vx: float, vy: float, vyaw: float, duration: float
     ) -> None:
-        """
-        Cel: Ta metoda realizuje odpowiedzialność `_maybe_log_tx` w aktualnym module.
-        Dlaczego tak: Wydzielenie tej jednostki upraszcza debugowanie i chroni krytyczne ścieżki przed niekontrolowanymi zmianami.
-        """
+        """Log wysłanej komendy Move (id, wiek komendy, prędkości) najwyżej co log_interval_s."""
         if not self.log_cmd_vel_tx:
             return
 
@@ -268,10 +236,7 @@ class UnitreeCmdVelBridgeNode(Node):
         )
 
     def send_stop(self) -> None:
-        """
-        Cel: Ta metoda realizuje odpowiedzialność `send_stop` w aktualnym module.
-        Dlaczego tak: Wydzielenie tej jednostki upraszcza debugowanie i chroni krytyczne ścieżki przed niekontrolowanymi zmianami.
-        """
+        """StopMove 1003, najwyżej raz na stop_command_min_interval_s, żeby nie zalać magistrali."""
         now_monotonic = time.monotonic()
         if now_monotonic - self._last_stop_send_monotonic < max(self.stop_command_min_interval_s, 0.01):
             return
@@ -284,10 +249,7 @@ class UnitreeCmdVelBridgeNode(Node):
         self.get_logger().info(f'Stop sent (api_id={self.api_id_stop})')
 
     def estop_callback(self, msg: Bool) -> None:
-        """
-        Cel: Ta metoda realizuje odpowiedzialność `estop_callback` w aktualnym module.
-        Dlaczego tak: Wydzielenie tej jednostki upraszcza debugowanie i chroni krytyczne ścieżki przed niekontrolowanymi zmianami.
-        """
+        """Bool True = zatrzymaj robota i trzymaj stop do False (send_move wysyła wtedy StopMove zamiast Move)."""
         self._estop_active = bool(msg.data)
         if self._estop_active:
             self.last_twist = Twist()
@@ -296,10 +258,7 @@ class UnitreeCmdVelBridgeNode(Node):
 
 
 def main(args=None) -> None:
-    """
-    Cel: Ta funkcja realizuje odpowiedzialność `main` w aktualnym module.
-    Dlaczego tak: Wydzielenie tej jednostki upraszcza debugowanie i chroni krytyczne ścieżki przed niekontrolowanymi zmianami.
-    """
+    """Start mostu; Ctrl+C wysyła jeszcze StopMove (handler sygnałów rclpy wyłączony - patrz niżej)."""
     # Handler sygnałów rclpy wyłączony: wtedy Ctrl+C (SIGINT) to zwykły KeyboardInterrupt,
     # a kontekst ROS jeszcze działa, więc StopMove (1003) zdąży wyjść do robota. Z domyślnym
     # handlerem Jazzy zamyka kontekst i spin() kończy się ExternalShutdownException - wtedy

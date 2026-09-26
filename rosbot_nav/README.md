@@ -60,14 +60,18 @@ Bringup budzi koła/odometrię/TF, **ale NIE lidar** — to osobne urządzenie U
 Dwa kroki (zwalidowane na żywo na ROSbocie XL):
 
 ```bash
-# KROK 1 — bringup (na robocie). Czekaj na: "Configured and activated all parsed controllers:
-# ['mecanum_drive_controller','imu_broadcaster','joint_state_broadcaster']":
+# KROK 1 — bringup (na robocie). Czekaj na: "Configured and activated all the parsed controllers list :
+# ['mecanum_drive_controller', 'imu_broadcaster', 'joint_state_broadcaster', 'twist_mux_controller']!"
+# (brzmienie zależy od wersji ros2_control; ważne są te 4 kontrolery)
 cd ~/ros2_ws && source install/setup.bash
+git -C ~/ros2_ws/src/rosbot_ros describe --tags   # oczekiwane 1.2.2, jak w M8
 ros2 launch rosbot_bringup rosbot_xl.yaml          # kola, MCU, odometria, TF (BEZ /scan!)
 
-# KROK 2 — driver lidaru RPLIDAR S3 (na robocie). WAŻNE: /dev/ttyUSB1 (USB0 to silniki/MCU!).
+# KROK 2 — driver lidaru RPLIDAR S3 (na robocie).
+# numer ttyUSBx zależy od kolejności wykrycia USB — użyj stabilnej ścieżki z `ls -l /dev/serial/by-id/`
 # Czekaj na: "RPLidar health status : OK." + "set lidar scan frequency to 10.0 Hz":
-ros2 launch rplidar_ros rplidar_s3_launch.py serial_port:=/dev/ttyUSB1 frame_id:=rplidar_link
+ros2 launch rplidar_ros rplidar_s3_launch.py serial_port:=/dev/serial/by-id/<wpis-lidaru> frame_id:=rplidar_link
+# (przykładowo serial_port:=/dev/ttyUSB1, ale ten numer może się zmienić po restarcie)
 ```
 
 `frame_id:=rplidar_link` jest obowiązkowe: driver domyślnie podpisuje skan ramką `laser`, której nie ma
@@ -79,16 +83,39 @@ ros2 topic hz /scan                                       # ~10 Hz, NIE 0 publis
 ros2 topic echo /scan --field header.frame_id --once      # powinno być: rplidar_link
 ros2 run tf2_ros tf2_echo base_link rplidar_link          # MUSI zwracać transform
 ```
-> **Port:** na ROSbocie XL silniki/MCU siedzą na `/dev/ttyUSB0`, więc lidar to zwykle `/dev/ttyUSB1`
-> (sprawdź `ls /dev/serial/by-id/`). Uprawnienia: grupa `dialout` lub `sudo chmod 666 /dev/ttyUSB1`.
+> **Port:** Numer portu zależy od kolejności wykrycia urządzeń USB; podaj ścieżkę z `ls -l /dev/serial/by-id/`
+> (odłącz kabel lidaru, żeby rozpoznać wpis). Uprawnienia: grupa `dialout` lub `sudo chmod 666 /dev/ttyUSBx`.
 > **Frame:** jeśli `/scan` ma frame `laser` zamiast `rplidar_link`, to w komendzie lidaru zabrakło
 > `frame_id:=rplidar_link`.
+
+### Pre-flight napędu (mecanum)
+
+Zanim puścisz SLAM i Nav2, sprawdź, czy odometria zgadza się z tym, co robi robot:
+
+```bash
+# 1) Obrót ręczny: obróć robota ręką o 90° w lewo. Yaw w „RPY (degree)” ma wzrosnąć o ok. +90.
+ros2 run tf2_ros tf2_echo odom base_link
+
+# 2) Obrót w miejscu z komendy: 30 × 0.1 s przy 0.5 rad/s = 1.5 rad (ok. 86°).
+ros2 topic pub --times 30 --rate 10 /manual/cmd_vel geometry_msgs/msg/TwistStamped "{twist: {angular: {z: 0.5}}}"
+#    Porównaj rzeczywisty obrót, tf2_echo (wyżej) i odometrię kół (kąt = 2·atan2(z, w)):
+ros2 topic echo /odometry/wheels --field pose.pose.orientation --once
+```
+
+3) **Koła:** koła mecanum występują w wersji lewej i prawej, a wzór rolek musi się zgadzać ze schematem
+   https://husarion.com/manuals/rosbot-xl/wheel-swap/. Objaw zamienionych kół: „jedzie ~1 m, potem Nav2 kręci
+   recovery spin”.
+
+> **Bezpieczeństwo:** programowe przejęcie sterowania to
+> `ros2 topic pub -r 20 /manual/cmd_vel geometry_msgs/msg/TwistStamped "{}"` — `twist_mux_controller` daje
+> `manual/cmd_vel` priorytet 100, ale zero trzyma robota tylko dopóki ta komenda działa. Prawdziwym stopem
+> zostają Ctrl+C na Nav2 i wyłącznik zasilania robota.
 
 ## Warstwa 2 = Tryb 1 — Mapowanie
 
 ```bash
 ros2 launch rosbot_nav slam.launch.py            # box-filter + slam_toolbox (use_sim_time:=false)
-ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -p stamped:=true   # Jazzy: TwistStamped
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -p stamped:=true -r cmd_vel:=manual/cmd_vel
 ros2 run nav2_map_server map_saver_cli -f ~/maps/moja_mapa
 ```
 Podgląd: RViz na laptopie (Fixed Frame `map`, `/map` z Durability **Transient Local**, `/scan`, TF).
@@ -167,7 +194,7 @@ Robot sam jeździ do granic znane/nieznane. Działa tylko w **zamkniętej** prze
 
 | Plik | Tryb | Sedno |
 |---|---|---|
-| (driver lidaru) | 1,2,3 | **zewnętrzny** `rplidar_ros` → `ros2 launch rplidar_ros rplidar_s3_launch.py serial_port:=/dev/ttyUSB1 frame_id:=rplidar_link` (nie nasz pakiet) |
+| (driver lidaru) | 1,2,3 | **zewnętrzny** `rplidar_ros` → `ros2 launch rplidar_ros rplidar_s3_launch.py serial_port:=/dev/serial/by-id/<wpis-lidaru> frame_id:=rplidar_link` (np. `/dev/ttyUSB1`; nie nasz pakiet) |
 | `config/laser_filter.yaml` | 1,2,3 | box-filter `/scan → /scan_filtered` (= m8_gazebo) |
 | `config/slam_rosbot.yaml` | 1,3 | slam_toolbox `base_link`, `/scan_filtered` (= m8_gazebo) |
 | `config/nav2_rosbot.yaml` | 2 | Nav2 REAL: collision_monitor ON, `/scan_filtered`, MPPI 1000/40, `odom_topic` w controller_server |

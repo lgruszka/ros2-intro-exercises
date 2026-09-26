@@ -71,6 +71,7 @@ colcon build --symlink-install --packages-select intro_node
 | —                 | M3 · DDS (eksperymenty CLI)| —              | patrz „DDS na żywo" w module M3 |
 | `m3_services`     | M4 · Services/Params/Actions | `intro_services` (+ `intro_actions`) | `ros2 run intro_services add_server` |
 | `m4_launch`       | M5 · Pakiety, colcon & launch| `intro_demo`   | `ros2 launch intro_demo two_counters.launch.py` |
+| `m4_launch`       | M5 · drabinka „Launch w przeglądarce” | `intro_launch` | `ros2 launch intro_launch turtle.launch.py speed:=2.0` |
 | `m5_tf2_turtle`   | M6 · TF2 i drzewo frames   | `m5_tf2_turtle`| `ros2 launch m5_tf2_turtle turtle_tf2.launch.py` |
 | `m6_urdf`         | M7 · URDF + viz            | `m6_urdf`      | `ros2 launch m6_urdf display_arm.launch.py` |
 | `m7_turtle_hunter`| W1 · Łowca żółwi           | `m7_turtle_hunter` | `ros2 launch m7_turtle_hunter turtle_hunter_launch.py` |

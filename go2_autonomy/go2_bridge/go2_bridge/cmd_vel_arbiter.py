@@ -138,7 +138,7 @@ class CmdVelArbiter(Node):
         with self._lock:
             self._estop = bool(msg.data)
         if msg.data:
-            self.get_logger().warn('E-STOP latched -> zero cmd_vel')
+            self.get_logger().warning('E-STOP latched -> zero cmd_vel')
 
     def _on_set_freeze(self, request: SetFreeze.Request, response: SetFreeze.Response):
         with self._lock:

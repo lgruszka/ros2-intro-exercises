@@ -2,7 +2,7 @@
 """W8 — pick & place na Franka Panda z moveit_py (symulacja mock hardware).
 
 Sekwencja: ready -> pre-grasp nad klockiem -> zjazd -> chwyt -> ATTACH ->
-podniesienie -> przeniesienie -> zjazd -> otwarcie -> DETACH -> ready.
+podniesienie -> przeniesienie -> zjazd -> otwarcie -> DETACH -> odjazd w górę -> ready.
 
 Uruchomienie (po `ros2 launch panda_moveit pick_place.launch.py` w 1. terminalu):
     ros2 run panda_moveit pick_place
@@ -142,7 +142,11 @@ def main():
     print('7/8 odłóż', flush=True);            assert goto_pose(panda, arm, CEL_XYZ[0], CEL_XYZ[1], PLACE_Z)
     gripper(panda, hand, 'open')
     set_attached(psm, 'klocek', attach=False)
-    print('8/8 powrót do ready', flush=True);  goto_named(panda, arm, 'ready')
+    # odjazd pionowo w górę PRZED 'ready': prosto z PLACE_Z palce potrafią zahaczyć o odłożony
+    # klocek i MoveIt odrzuca plan („Found a contact between 'klocek' and 'panda_rightfinger'”)
+    print('8/8 odjazd w górę i powrót do ready', flush=True)
+    assert goto_pose(panda, arm, CEL_XYZ[0], CEL_XYZ[1], PREGRASP_Z)
+    assert goto_named(panda, arm, 'ready')
     print('✓ pick & place zakończony', flush=True)
     # Jawne zamknięcie MoveItPy. Mimo to na Jazzy proces potrafi skończyć się
     # „Segmentation fault” (exit 245) PO udanej sekwencji - to błąd sprzątania
