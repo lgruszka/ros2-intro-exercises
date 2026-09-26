@@ -5,8 +5,8 @@ Wypełnij 3 TODO. Po zbudowaniu pakietu i uruchomieniu:
     ros2 run intro_pubsub talker
 
 powinieneś widzieć w logu:
-    [INFO] [talker]: Published: Hello ROS2 #0
-    [INFO] [talker]: Published: Hello ROS2 #1
+    [INFO] [talker]: Published: Hello ROS 2 #0
+    [INFO] [talker]: Published: Hello ROS 2 #1
     ...
 
 W razie problemu — talker_solution.py jest obok jako referencja.
@@ -38,7 +38,7 @@ class Talker(Node):
         # TODO 3: zbuduj wiadomość, opublikuj, zaloguj
         # Hint:
         #   msg = String()
-        #   msg.data = f'Hello ROS2 #{self.count}'
+        #   msg.data = f'Hello ROS 2 #{self.count}'
         #   self.publisher.publish(msg)
         #   self.get_logger().info(f'Published: {msg.data}')
         #   self.count += 1

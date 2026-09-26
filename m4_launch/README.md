@@ -23,7 +23,7 @@ m4_launch/
 
 ## Setup (Ubuntu 24.04 + ROS 2 Jazzy)
 
-Pakiet masz już w workspace po `git clone` repo ćwiczeń (kurs: „ROS2 u siebie”, Krok 5 —
+Pakiet masz już w workspace po `git clone` repo ćwiczeń (kurs: „ROS 2 u siebie”, Krok 5 —
 https://lucsrobotics.com/ros2-intro/#/instalacja). **Nie kopiuj** go w inne miejsce `~/ros2_ws/src` — dwie kopie tego
 samego pakietu kończą się błędem colcon `Duplicate package names`.
 
@@ -151,5 +151,5 @@ Sprawdź wynik w drugim terminalu: `ros2 node list` pokazuje `/sim` i `/driver_a
 ## Materiał referencyjny
 
 - Module 4 (lekcja w SPA): https://lucsrobotics.com/ros2-intro/
-- [ROS2 Launch tutorial](https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Launch/Creating-Launch-Files.html)
+- [ROS 2 Launch tutorial](https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Launch/Creating-Launch-Files.html)
 - [launch_ros API](https://docs.ros.org/en/jazzy/p/launch_ros/index.html)

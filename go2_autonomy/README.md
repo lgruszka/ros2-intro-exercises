@@ -2,7 +2,7 @@
 
 Gotowy stack do **mapowania (SLAM)** i **autonomicznej nawigacji (Nav2 + AMCL)** na
 czworonogu **Unitree Go2**, na Ubuntu 24.04 / ROS 2 Jazzy. To materiał do warsztatu
-**W5** kursu ROS2 Intro (LucsRobotics) — capstone „od surowego lidaru do robota
+**W5** kursu ROS 2 Intro (LucsRobotics) — capstone „od surowego lidaru do robota
 jeżdżącego samodzielnie po mapie".
 
 > **Dla kogo:** dla kogoś, kto ma **fizycznego Go2** (większość kursantów ogląda to jako
@@ -31,17 +31,18 @@ jeżdżącego samodzielnie po mapie".
 
 ---
 
-## Prereki
+## Wymagane pakiety
 
 ```bash
 sudo apt install -y \
   ros-jazzy-slam-toolbox ros-jazzy-navigation2 ros-jazzy-nav2-bringup \
   ros-jazzy-pointcloud-to-laserscan ros-jazzy-rmw-cyclonedds-cpp \
   ros-jazzy-teleop-twist-keyboard python3-vcstool python3-colcon-common-extensions \
-  ros-jazzy-rosidl-generator-dds-idl python3-pyqt6
+  ros-jazzy-rosidl-generator-dds-idl python3-pyqt6 python3-scipy python3-pil
 ```
 - `ros-jazzy-rosidl-generator-dds-idl` — wymaga go `unitree_ros2`, a rosdep nie zainstaluje go sam
   (bez niego build `unitree_api`/`unitree_go` pada).
+- `python3-scipy` i `python3-pil` — dla `tools/clean_map.py` (czyszczenie mapy po SLAM).
 - `python3-pyqt6` — dla narzędzi GUI z `tools/`. Instaluj z apt, nie przez `pip` (Ubuntu 24.04
   blokuje systemowy `pip install`, PEP 668).
 Plus **`unitree_ros2`** — oficjalny SDK Unitree (most firmware + msgs). Buduje się wg
@@ -91,24 +92,48 @@ ros2 topic hz /utlidar/cloud_base   # ~15 Hz = robot gada (topic hz sam dopasowu
 
 ---
 
+## 0) Kalibracja skanu (przed mapowaniem)
+
+Pas wysokości (`min_height` / `max_height`) i `range_min` w `go2_bringup/config/pointcloud_to_laserscan.yaml`
+ustawiasz **raz, przed mapowaniem** — mapowanie i nawigacja czytają ten sam plik (W5, sekcja 5).
+
+```bash
+# Terminal 1 (po source tools/go2_env.sh): GUI z suwakami, podgląd na /scan_calib
+python3 tools/go2_scan_calib_gui.py
+# Terminal 2: rviz2 → Fixed Frame = base_link, Add → LaserScan /scan_calib (Reliability: Best Effort)
+rviz2
+```
+Przepisz wartości z GUI do `pointcloud_to_laserscan.yaml`, zamknij GUI (Ctrl+C).
+
 ## 1) Mapowanie (SLAM)
 
 ```bash
+# Terminal 1 (zostaw działające). RViz wstaje sam (Fixed Frame = map).
 ros2 launch go2_bringup mapping.launch.py
-# Jeźdź PILOTEM (RC) wolno po całej sali, WRÓĆ w okolicę startu (loop closure).
-# RViz wstaje sam (Fixed Frame=map). Gdy mapa gotowa:
-ros2 run nav2_map_server map_saver_cli -f ~/maps/sala1     # → sala1.yaml + sala1.pgm
 ```
+Prowadź robota **pilotem (RC), wolno**, po całej sali i wróć w okolice startu (loop closure).
+Gdy mapa gotowa, w drugim terminalu:
+
+```bash
+# Terminal 2
+mkdir -p ~/maps                                            # bez katalogu map_saver_cli kończy się błędem
+ros2 run nav2_map_server map_saver_cli -f ~/maps/sala1     # → sala1.yaml + sala1.pgm
+./tools/clean_map.py ~/maps/sala1.yaml                     # → sala1_clean.yaml + .pgm + _preview.png
+```
+Potem zamknij mapowanie (Ctrl+C w Terminalu 1).
 
 ## 2) Nawigacja (Nav2 + AMCL)
 
 ```bash
-ros2 launch go2_bringup nav.launch.py map:=$HOME/maps/sala1.yaml
+# Terminal 1
+ros2 launch go2_bringup nav.launch.py map:=$HOME/maps/sala1_clean.yaml
+# Terminal 2: RViz z przyciskami Nav2 (2D Pose Estimate, Nav2 Goal)
+ros2 launch nav2_bringup rviz_launch.py
 ```
 > **Zanim robot ruszy:** most NIE stawia robota — postaw go pilotem, zanim uruchomisz launch.
 > Jedna osoba trzyma pilota i cały czas patrzy na robota, strefa 1,5–2 m wokół trasy jest wolna,
 > pierwsze cele blisko i wolno (prędkości obniżysz w `nav2_params.yaml`, `safety.yaml`
-> i parametrach mostu w `nav.launch.py` — szczegóły w W6, sekcja 7). Programowy stop:
+> i parametrach mostu w `nav.launch.py` — szczegóły w W5, sekcja 7). Programowy stop:
 > ```bash
 > ros2 topic pub --once /emergency_stop/active std_msgs/msg/Bool "{data: true}"    # stop
 > ros2 topic pub --once /emergency_stop/active std_msgs/msg/Bool "{data: false}"   # zwolnij

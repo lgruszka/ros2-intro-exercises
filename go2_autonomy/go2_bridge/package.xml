@@ -2,7 +2,7 @@
 <package format="3">
   <name>go2_bridge</name>
   <version>0.1.0</version>
-  <description>Most sprzętowy Unitree Go2: arbiter /cmd_vel, konsument sport API (/cmd_vel -&gt; ruch), lowstate -&gt; /joint_states. Kurs ROS2 Intro (LucsRobotics).</description>
+  <description>Most sprzętowy Unitree Go2: arbiter /cmd_vel, konsument sport API (/cmd_vel -&gt; ruch), lowstate -&gt; /joint_states. Kurs ROS 2 Intro (LucsRobotics).</description>
   <maintainer email="lukasz.gruszka90@gmail.com">Lukasz Gruszka</maintainer>
   <license>Apache-2.0</license>
 

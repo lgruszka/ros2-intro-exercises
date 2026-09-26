@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Module 0 smoke test validator.
-# Sprawdza że ROS2 jest sourcowany, talker działa, /chatter widoczny w grafie.
+# Sprawdza że ROS 2 jest sourcowany, talker działa, /chatter widoczny w grafie.
 
 set -uo pipefail
 

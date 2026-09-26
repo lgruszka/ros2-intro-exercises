@@ -15,7 +15,7 @@ setup(
     zip_safe=True,
     maintainer='Lukasz Gruszka',
     maintainer_email='lukasz.gruszka90@gmail.com',
-    description='Most Go2: /cmd_vel -> Unitree sport API, lowstate -> /joint_states, arbiter cmd_vel. Kurs ROS2 Intro (LucsRobotics).',
+    description='Most Go2: /cmd_vel -> Unitree sport API, lowstate -> /joint_states, arbiter cmd_vel. Kurs ROS 2 Intro (LucsRobotics).',
     license='Apache-2.0',
     tests_require=['pytest'],
     entry_points={

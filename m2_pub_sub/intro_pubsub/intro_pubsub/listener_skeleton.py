@@ -5,8 +5,8 @@ Wypełnij 2 TODO. Po zbudowaniu pakietu i uruchomieniu (gdy talker działa):
     ros2 run intro_pubsub listener
 
 powinieneś widzieć w logu:
-    [INFO] [listener]: Received: Hello ROS2 #0
-    [INFO] [listener]: Received: Hello ROS2 #1
+    [INFO] [listener]: Received: Hello ROS 2 #0
+    [INFO] [listener]: Received: Hello ROS 2 #1
     ...
 """
 

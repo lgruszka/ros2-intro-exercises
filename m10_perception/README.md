@@ -1,4 +1,4 @@
-# m10_perception — kamera i obraz w ROS2 (moduł M10)
+# m10_perception — kamera i obraz w ROS 2 (moduł M10)
 
 Pipeline percepcji bez sprzętu: syntetyczna kamera (`toy_camera`) publikuje obraz
 z **zieloną kulą krążącą po okręgu**, a Ty piszesz detektor koloru

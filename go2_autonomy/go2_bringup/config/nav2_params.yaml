@@ -1,4 +1,4 @@
-# Parametry Nav2 dla Unitree Go2 (kurs ROS2 Intro, warsztaty W5/W6).
+# Parametry Nav2 dla Unitree Go2 (kurs ROS 2 Intro, warsztaty W5/W6).
 # Okrojona konfiguracja startowa - wystarcza do jazdy po mapie i dalszego strojenia.
 
 amcl:
@@ -222,7 +222,7 @@ behavior_server:
 # uruchamia, więc potrzebuje poprawnych parametrów, ale nie siedzi w torze sterowania
 # (arbiter czyta /cmd_vel_smoothed prosto z velocity_smoother). Przed przeszkodami
 # chronią robota tylko costmapy i controller - dlatego pierwsze jazdy rób wolno,
-# z pilotem w ręku (W6, sekcja 7). Żeby go włączyć: cmd_vel_in_topic: /cmd_vel_smoothed,
+# z pilotem w ręku (W5, sekcja 7). Żeby go włączyć: cmd_vel_in_topic: /cmd_vel_smoothed,
 # wyjście na nowy topic, arbiter nav_topic na to wyjście (nav.launch.py), prawdziwe
 # źródło /scan i polygon z enabled: true - i przetestuj to najpierw na podniesionym robocie.
 # Puste listy ('[]') i słowniki ('{}') psują parser parametrów ('expected
@@ -262,7 +262,7 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: false
     feedback: 'OPEN_LOOP'
-    max_velocity: [1.0, 0.5, 2.0]    # limity Go2 (vx, vy, wz); na pierwsze jazdy obniż (W6, sekcja 7)
+    max_velocity: [1.0, 0.5, 2.0]    # limity Go2 (vx, vy, wz); na pierwsze jazdy obniż (W5, sekcja 7)
     min_velocity: [-1.0, -0.5, -2.0]
     max_accel: [2.5, 2.5, 3.2]
     max_decel: [-2.5, -2.5, -3.2]

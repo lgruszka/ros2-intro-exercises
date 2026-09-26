@@ -1,7 +1,7 @@
 # Warsztat W1 — Łowca żółwi
 
-> Pakiet ROS2: `m7_turtle_hunter`. Cel: jeden żółw (hunter) poluje na ofiary, łapie je (`/kill`),
-> a game_manager spawnuje nowe (`/spawn`) i pilnuje wyniku. Cały ROS2 w jednym ćwiczeniu:
+> Pakiet ROS 2: `m7_turtle_hunter`. Cel: jeden żółw (hunter) poluje na ofiary, łapie je (`/kill`),
+> a game_manager spawnuje nowe (`/spawn`) i pilnuje wyniku. Cały ROS 2 w jednym ćwiczeniu:
 > node, pub/sub, timer, service client/server, parametry.
 
 ## Co dostajesz

@@ -12,7 +12,7 @@ green() { printf "\033[32m%s\033[0m\n" "$1"; }
 red() { printf "\033[31m%s\033[0m\n" "$1"; }
 yellow() { printf "\033[33m%s\033[0m\n" "$1"; }
 
-# 1. Czy ROS2 source'owany?
+# 1. Czy ROS 2 source'owany?
 if ! command -v ros2 >/dev/null 2>&1; then
   red "✗ ros2 nie jest w PATH. Czy source /opt/ros/jazzy/setup.bash?"
   exit 1

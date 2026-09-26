@@ -1,6 +1,6 @@
 # Moduł 7 (URDF) — Ćwiczenie: 3-DoF manipulator
 
-> Pakiet ROS2: `m6_urdf`. Cel: opisać prosty 3-DoF arm w URDF/xacro i zobaczyć go w ruchu w RViz
+> Pakiet ROS 2: `m6_urdf`. Cel: opisać prosty 3-DoF arm w URDF/xacro i zobaczyć go w ruchu w RViz
 > (ten sam model co interaktywny URDFViewer w treści modułu).
 
 ## Co dostajesz

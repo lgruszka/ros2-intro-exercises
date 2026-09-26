@@ -2,7 +2,7 @@
 # Uruchom: ros2 launch rosbot_nav nav.launch.py map:=... controller:=rpp
 # Zmieniasz coś poza FollowPath w nav2_rosbot.yaml? Przenieś to też tutaj.
 #
-# nav2_rosbot.yaml — Nav2 dla REALNEGO ROSbota XL (kurs ROS2 Intro / LucsRobotics).
+# nav2_rosbot.yaml — Nav2 dla REALNEGO ROSbota XL (kurs ROS 2 Intro / LucsRobotics).
 # Wariant REAL (odpowiednik m8_gazebo/config/nav2_rosbot.yaml, który jest pod symulację).
 # Wspólny rdzeń: base_link (nie base_footprint), enable_stamped_cmd_vel, odom_topic /odometry/filtered.
 #

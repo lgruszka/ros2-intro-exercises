@@ -22,7 +22,7 @@ class Talker(Node):
     def tick(self):
         # TODO 3: ✓
         msg = String()
-        msg.data = f'Hello ROS2 #{self.count}'
+        msg.data = f'Hello ROS 2 #{self.count}'
         self.publisher.publish(msg)
         self.get_logger().info(f'Published: {msg.data}')
         self.count += 1

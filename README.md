@@ -1,6 +1,6 @@
-# ROS2 Intro — ćwiczenia (LucsRobotics)
+# ROS 2 Intro — ćwiczenia (LucsRobotics)
 
-Pakiety ROS2 do kursu **„Wprowadzenie do robotyki przez pryzmat ROS2"** (Jazzy).
+Pakiety ROS 2 do kursu **„Wprowadzenie do robotyki przez pryzmat ROS 2"** (Jazzy).
 Każdy folder `mN_*` to jedno ćwiczenie powiązane z modułem kursu. Pracujesz na
 **szkielecie** (`*_skeleton.py`, z `TODO`), a obok masz **rozwiązanie referencyjne**
 (`*_solution.py`) na wypadek gdybyś utknął.
@@ -14,12 +14,12 @@ Każdy folder `mN_*` to jedno ćwiczenie powiązane z modułem kursu. Pracujesz 
 ## Wymagania
 
 - **Ubuntu 24.04 LTS** (natywnie lub WSL2)
-- **ROS2 Jazzy** zainstalowany — instrukcja: sekcja „ROS2 u siebie" w kursie
+- **ROS 2 Jazzy** zainstalowany — instrukcja: sekcja „ROS 2 u siebie" w kursie
   lub [docs.ros.org/en/jazzy/Installation](https://docs.ros.org/en/jazzy/Installation.html)
   (wariant `ros-jazzy-desktop` — zawiera `turtlesim`, `tf2`, `rviz2`, itd.)
-- `git`, `python3-colcon-common-extensions`, `python3-rosdep` (instalka ROS2 zwykle to ciągnie)
+- `git`, `python3-colcon-common-extensions`, `python3-rosdep` (instalka ROS 2 zwykle to ciągnie)
 
-Sprawdź, że ROS2 żyje:
+Sprawdź, że ROS 2 żyje:
 
 ```bash
 source /opt/ros/jazzy/setup.bash
@@ -30,7 +30,7 @@ ros2 doctor --report | head -20
 
 ## Setup workspace (jednorazowo)
 
-ROS2 buduje **cały workspace**, nie pojedynczy plik. Robisz to raz:
+ROS 2 buduje **cały workspace**, nie pojedynczy plik. Robisz to raz:
 
 ```bash
 # 1. workspace + klon ćwiczeń do src/
@@ -63,20 +63,20 @@ colcon build --symlink-install --packages-select intro_node
 
 ## Mapa ćwiczeń
 
-| Folder | Moduł kursu | Pakiet ROS2 | Uruchom |
+| Folder | Moduł kursu | Pakiet ROS 2 | Uruchom |
 |---|---|---|---|
-| `m0_first_steps`  | M0 · Czym jest ROS2        | — (tylko CLI)  | `ros2 doctor`, `ros2 run demo_nodes_cpp talker` |
-| `m1_hello_node`   | M1 · Nodes & ros2 CLI      | `intro_node`   | `ros2 run intro_node hello` |
-| `m2_pub_sub`      | M2 · Topics + QoS          | `intro_pubsub` | `ros2 launch intro_pubsub talker_listener.launch.py` |
+| `m0_first_steps`  | M0 · Czym jest ROS 2        | — (tylko CLI)  | `ros2 doctor`, `ros2 run demo_nodes_cpp talker` |
+| `m1_hello_node`   | M1 · Nodes i narzędzia ros2 | `intro_node`   | `ros2 run intro_node hello` |
+| `m2_pub_sub`      | M2 · Topics i QoS           | `intro_pubsub` | `ros2 launch intro_pubsub talker_listener.launch.py` |
 | —                 | M3 · DDS (eksperymenty CLI)| —              | patrz „DDS na żywo" w module M3 |
 | `m3_services`     | M4 · Services/Params/Actions | `intro_services` (+ `intro_actions`) | `ros2 run intro_services add_server` |
-| `m4_launch`       | M5 · Pakiety, colcon & launch| `intro_demo`   | `ros2 launch intro_demo two_counters.launch.py` |
+| `m4_launch`       | M5 · Pakiety, colcon i launch| `intro_demo`   | `ros2 launch intro_demo two_counters.launch.py` |
 | `m4_launch`       | M5 · drabinka „Launch w przeglądarce” | `intro_launch` | `ros2 launch intro_launch turtle.launch.py speed:=2.0` |
 | `m5_tf2_turtle`   | M6 · TF2 i drzewo frames   | `m5_tf2_turtle`| `ros2 launch m5_tf2_turtle turtle_tf2.launch.py` |
-| `m6_urdf`         | M7 · URDF + viz            | `m6_urdf`      | `ros2 launch m6_urdf display_arm.launch.py` |
+| `m6_urdf`         | M7 · URDF i RViz            | `m6_urdf`      | `ros2 launch m6_urdf display_arm.launch.py` |
 | `m7_turtle_hunter`| W1 · Łowca żółwi           | `m7_turtle_hunter` | `ros2 launch m7_turtle_hunter turtle_hunter_launch.py` |
 | `m7_turtle_choreo`| W2 · Choreografia + Race   | `m7_turtle_choreo` | `ros2 launch m7_turtle_choreo choreo.launch.py` |
-| `m7_nav2_capstone`| W3 · Nawigacja & SLAM (Webots) | `m7_nav2_capstone` | wymaga Webots — patrz moduł W3 |
+| `m7_nav2_capstone`| W3 · Nawigacja i SLAM (Webots) | `m7_nav2_capstone` | `ros2 launch m7_nav2_capstone slam_w3.launch.py` (wymaga Webots — patrz moduł W3) |
 | `m8_gazebo`       | M8 · Gazebo na własnym komputerze | `m8_gazebo` (config-only) | `ros2 launch m8_gazebo slam.launch.py` (ROSbot XL w Gazebo, 3 tryby) |
 | `rosbot_nav`      | W4 · Realny ROSbot XL (Husarion) | `rosbot_nav` (config-only) | `ros2 launch rosbot_nav slam.launch.py` (mapowanie/nawigacja/eksploracja na sprzęcie) |
 | `go2_autonomy`    | W5/W6 · Unitree Go2        | `go2_bringup`/`go2_bridge`/… | patrz `go2_autonomy/README.md` (most ruchu sport API) |
@@ -106,7 +106,7 @@ od razu po buildzie — kod do napisania znajdziesz w `*_skeleton.py`.
 
 ## Praca na wielu maszynach (kurs stacjonarny)
 
-ROS2 nie ma „mastera" — nody same się wykrywają w sieci (DDS discovery). Jeśli kilka
+ROS 2 nie ma „mastera" — nody same się wykrywają w sieci (DDS discovery). Jeśli kilka
 osób jest w **tej samej sieci LAN/Wi-Fi** z **tym samym `ROS_DOMAIN_ID`**, zobaczą
 nawzajem swoje topiki. To podstawa eksperymentów w module M3 i fajny pokaz na żywo:
 

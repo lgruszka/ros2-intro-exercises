@@ -1,11 +1,11 @@
-# Moduł 0 — Smoke test: pierwsze polecenia ROS2
+# Moduł 0 — Smoke test: pierwsze polecenia ROS 2
 
 > Cel: sprawdzić, że ROS 2 Jazzy na Twoim Ubuntu 24.04 działa, i zobaczyć na żywo, jak wygląda graf nodów. **Nie piszemy własnego kodu** — używamy systemowych demo nodów.
 
 ## Setup (jednorazowo na początku kursu)
 
 Potrzebujesz Ubuntu 24.04 z zainstalowanym ROS 2 Jazzy (natywnie, w maszynie wirtualnej albo w WSL2).
-Instrukcja krok po kroku: sekcja **„ROS2 u siebie”** w kursie (https://lucsrobotics.com/ros2-intro/#/instalacja).
+Instrukcja krok po kroku: sekcja **„ROS 2 u siebie”** w kursie (https://lucsrobotics.com/ros2-intro/#/instalacja).
 
 Każdy nowy terminal musi znać ROS 2. Załaduj środowisko i dopisz je do `~/.bashrc`, żeby działo się to automatycznie:
 
@@ -57,7 +57,7 @@ Co widzisz: co sekundę linijka typu:
 ...
 ```
 
-Co to robi: node `talker` (C++ binarne z systemu) publikuje wiadomość typu `std_msgs/String` na topiku `/chatter` co 1 sekundę. To nie jest Twój kod — to demo wbudowane w ROS2.
+Co to robi: node `talker` (C++ binarne z systemu) publikuje wiadomość typu `std_msgs/String` na topiku `/chatter` co 1 sekundę. To nie jest Twój kod — to demo wbudowane w ROS 2.
 
 **Zostaw to działające.**
 
@@ -96,7 +96,7 @@ Pokaże:
 ros2 topic list
 ```
 
-Pokaże (oprócz domyślnych ROS2 topics):
+Pokaże (oprócz domyślnych ROS 2 topics):
 ```
 /chatter
 /parameter_events
@@ -152,7 +152,7 @@ ros2 pkg executables demo_nodes_cpp
 
 ## Walidacja
 
-Uruchom (katalog po `git clone` z „ROS2 u siebie”, Krok 5):
+Uruchom (katalog po `git clone` z „ROS 2 u siebie”, Krok 5):
 
 ```bash
 cd ~/ros2_ws/src/ros2-intro-exercises/m0_first_steps
@@ -177,10 +177,10 @@ Sukces:
 Zostaw 1 terminal otwarty z `talker` — przyda się w module 1 (sprawdzimy ten sam graf z lifecycle perspective).
 
 Następny moduł:
-- **Moduł 1 — Nodes & ros2 CLI** (https://lucsrobotics.com/ros2-intro/) — napiszesz własny node w Pythonie
+- **Moduł 1 — Nodes i narzędzia ros2** (https://lucsrobotics.com/ros2-intro/) — napiszesz własny node w Pythonie
 
 ## Materiał referencyjny
 
 - Moduł 0 (lekcja w kursie): https://lucsrobotics.com/ros2-intro/
-- [ROS2 Jazzy CLI](https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools.html)
-- [Co to ROS2](https://docs.ros.org/en/jazzy/Concepts.html)
+- [ROS 2 Jazzy CLI](https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools.html)
+- [Co to ROS 2](https://docs.ros.org/en/jazzy/Concepts.html)

@@ -31,7 +31,7 @@ m3_services/
 
 ## Setup (Ubuntu 24.04 + ROS 2 Jazzy)
 
-Pakiet masz już w workspace po `git clone` repo ćwiczeń (kurs: „ROS2 u siebie”, Krok 5 —
+Pakiet masz już w workspace po `git clone` repo ćwiczeń (kurs: „ROS 2 u siebie”, Krok 5 —
 https://lucsrobotics.com/ros2-intro/#/instalacja). **Nie kopiuj** go w inne miejsce `~/ros2_ws/src` — dwie kopie tego
 samego pakietu kończą się błędem colcon `Duplicate package names`.
 
@@ -141,5 +141,5 @@ Skrypt sprawdza tylko część 1 (services). Stretch jest weryfikowany wizualnie
 ## Materiał referencyjny
 
 - Module 3 (lekcja w SPA): https://lucsrobotics.com/ros2-intro/
-- [ROS2 Services tutorial](https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Py-Service-And-Client.html)
-- [ROS2 Actions tutorial](https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Writing-an-Action-Server-Client/Py.html)
+- [ROS 2 Services tutorial](https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Py-Service-And-Client.html)
+- [ROS 2 Actions tutorial](https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Writing-an-Action-Server-Client/Py.html)

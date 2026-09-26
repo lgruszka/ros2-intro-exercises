@@ -1,6 +1,6 @@
 # Moduł 6 (TF2) — Ćwiczenie: follower przez TF
 
-> Pakiet ROS2: `m5_tf2_turtle`. Cel: turtle2 jedzie za turtle1, używając wyłącznie transformacji TF
+> Pakiet ROS 2: `m5_tf2_turtle`. Cel: turtle2 jedzie za turtle1, używając wyłącznie transformacji TF
 > (zero ręcznej trygonometrii — `lookup_transform` zwraca pozycję celu już w układzie followera).
 
 ## Co dostajesz

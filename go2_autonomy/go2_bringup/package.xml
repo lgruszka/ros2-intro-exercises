@@ -2,7 +2,7 @@
 <package format="3">
   <name>go2_bringup</name>
   <version>0.1.0</version>
-  <description>Launch + config dla autonomii Unitree Go2: cloud-&gt;scan, slam_toolbox (mapowanie), Nav2/AMCL (nawigacja). Kurs ROS2 Intro (LucsRobotics).</description>
+  <description>Launch + config dla autonomii Unitree Go2: cloud-&gt;scan, slam_toolbox (mapowanie), Nav2/AMCL (nawigacja). Kurs ROS 2 Intro (LucsRobotics).</description>
   <maintainer email="lukasz.gruszka90@gmail.com">Lukasz Gruszka</maintainer>
   <license>Apache-2.0</license>
 

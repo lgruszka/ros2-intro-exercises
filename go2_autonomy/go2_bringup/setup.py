@@ -20,7 +20,7 @@ setup(
     zip_safe=True,
     maintainer='Lukasz Gruszka',
     maintainer_email='lukasz.gruszka90@gmail.com',
-    description='Go2 autonomy bringup: cloud->scan, SLAM (mapowanie) i Nav2 (nawigacja). Kurs ROS2 Intro / LucsRobotics.',
+    description='Go2 autonomy bringup: cloud->scan, SLAM (mapowanie) i Nav2 (nawigacja). Kurs ROS 2 Intro / LucsRobotics.',
     license='Apache-2.0',
     entry_points={
         'console_scripts': [

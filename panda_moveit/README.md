@@ -50,7 +50,7 @@ ruch jest już wykonany.
 
 ## ✅ Status weryfikacji
 
-**Zweryfikowane end-to-end na czystym ROS2 Jazzy (kontener, headless):** apt install → colcon build →
+**Zweryfikowane end-to-end na czystym ROS 2 Jazzy (kontener, headless):** apt install → colcon build →
 launch `rviz:=false` (3 kontrolery active) → `ros2 run panda_moveit pick_place` → wszystkie 8 kroków
 sekwencji ✓ („pick & place zakończony"). Przed zajęciami odpal raz z RViz dla pewności wizualnej.
 

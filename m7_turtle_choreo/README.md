@@ -1,6 +1,6 @@
 # Warsztat W2 — Choreografia żółwi
 
-> Pakiet ROS2: `m7_turtle_choreo`. Cel: trzy żółwie rysują synchronicznie lemniskatę.
+> Pakiet ROS 2: `m7_turtle_choreo`. Cel: trzy żółwie rysują synchronicznie lemniskatę.
 > Jeden node (choreographer) nadaje wspólną fazę, każdy dancer tańczy ją w przesunięciu fazowym.
 > Pokazuje synchronizację przez topic i czyste sterowanie parametryczne.
 

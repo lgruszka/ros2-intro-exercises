@@ -5,8 +5,8 @@ KOLEJNOŚĆ:
     2) na ROBOCIE:  ros2 launch rplidar_ros rplidar_s3_launch.py serial_port:=/dev/ttyUSB1 frame_id:=rplidar_link
     3) na LAPTOPIE: ros2 launch rosbot_nav nav.launch.py map:=$HOME/maps/moja_mapa.yaml
                      (wariant RPP: dopisz controller:=rpp)
-    4) osobno:      rviz2   (NIE drugi nav.launch.py — mapa pojawi się w RViz sama)
-RViz (Fixed Frame = map): 2D Pose Estimate (gdzie stoi robot) → 2D Goal Pose (cel). Robot jedzie.
+    4) osobno:      ros2 launch nav2_bringup rviz_launch.py   (NIE drugi nav.launch.py)
+RViz (widok Nav2): 2D Pose Estimate (gdzie stoi robot) → Nav2 Goal (cel). Robot jedzie.
 Pozycję startową zaznacz w ~60 s od startu — inaczej global_costmap nie wstanie ("Aborting bringup").
 
 CO ROBI: (a) box-filter /scan → /scan_filtered, (b) nav2_bringup (map_server + AMCL + planner +
@@ -64,7 +64,7 @@ def launch_setup(context):
         return [
             LogInfo(msg='[rosbot_nav] Nav2 JUŻ DZIAŁA w tej domenie '
                         f'(ROS_DOMAIN_ID={os.environ.get("ROS_DOMAIN_ID", "0")}, /bt_navigator) — '
-                        'NIE uruchamiam drugiego. Do podglądu mapy wystarczy samo: rviz2. Restart '
+                        'NIE uruchamiam drugiego. Do podglądu: ros2 launch nav2_bringup rviz_launch.py. Restart '
                         'nawigacji: Ctrl+C w terminalu z działającym nav.launch.py i uruchom ponownie.'),
             Shutdown(reason='Nav2 already running'),
         ]

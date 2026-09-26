@@ -1,4 +1,4 @@
-# nav2_rosbot.yaml — Nav2 dla ROSbota XL w Gazebo (kurs ROS2 Intro / LucsRobotics).
+# nav2_rosbot.yaml — Nav2 dla ROSbota XL w Gazebo (kurs ROS 2 Intro / LucsRobotics).
 # Wygenerowane z domyślnego nav2_bringup/params/nav2_params.yaml (Jazzy, known-good)
 # z JEDNĄ kluczową zmianą: base_footprint -> base_link (ROSbot nie ma base_footprint,
 # inaczej AMCL nie zlokalizuje — analogicznie do base_frame w slam_rosbot.yaml).

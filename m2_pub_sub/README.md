@@ -1,6 +1,6 @@
 # Moduł 2 — Ćwiczenie: pierwszy pub/sub
 
-> Pakiet ROS2: `intro_pubsub`. Cel: napisać `talker` i `listener` korzystające z topiku `/chatter` typu `std_msgs/String`.
+> Pakiet ROS 2: `intro_pubsub`. Cel: napisać `talker` i `listener` korzystające z topiku `/chatter` typu `std_msgs/String`.
 
 ## Co dostajesz
 
@@ -23,7 +23,7 @@ m2_pub_sub/
 
 ## Setup (Ubuntu 24.04 + ROS 2 Jazzy)
 
-Pakiet masz już w workspace po `git clone` repo ćwiczeń (kurs: „ROS2 u siebie”, Krok 5 —
+Pakiet masz już w workspace po `git clone` repo ćwiczeń (kurs: „ROS 2 u siebie”, Krok 5 —
 https://lucsrobotics.com/ros2-intro/#/instalacja). **Nie kopiuj** go w inne miejsce `~/ros2_ws/src` — dwie kopie tego
 samego pakietu kończą się błędem colcon `Duplicate package names`.
 
@@ -74,8 +74,8 @@ ros2 topic echo /chatter
 ```
 
 Powinieneś widzieć:
-- Terminal 1: `[INFO] Published: Hello ROS2 #0`, `#1`, `#2`...
-- Terminal 2: `[INFO] Received: Hello ROS2 #0`, `#1`, `#2`...
+- Terminal 1: `[INFO] Published: Hello ROS 2 #0`, `#1`, `#2`...
+- Terminal 2: `[INFO] Received: Hello ROS 2 #0`, `#1`, `#2`...
 - Terminal 3: surowy stream YAML wiadomości
 
 ## Walidacja (opcjonalna)
@@ -104,6 +104,6 @@ Po sukcesie zobaczysz `✓ Module 2 exercise — PASSED`.
 
 ## Materiał referencyjny
 
-- Module 2 — Topics + QoS: https://lucsrobotics.com/ros2-intro/ (treść lekcji)
-- [Oficjalny tutorial ROS2](https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Py-Publisher-And-Subscriber.html)
+- Moduł 2 — Topics i QoS: https://lucsrobotics.com/ros2-intro/ (treść lekcji)
+- [Oficjalny tutorial ROS 2](https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Py-Publisher-And-Subscriber.html)
 - [rclpy QoS](https://docs.ros.org/en/jazzy/p/rclpy/rclpy.qos.html)

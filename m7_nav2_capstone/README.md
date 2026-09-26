@@ -16,21 +16,37 @@ Złożyć w jeden działający system wszystko z poprzednich modułów:
 ## Co dostajesz
 
 ```
-m7_nav2_capstone/
+m7_nav2_capstone/                      # pakiet ament_python (colcon)
 ├── README.md                          # ten plik
+├── package.xml, setup.py, setup.cfg, resource/
+├── m7_nav2_capstone/
+│   └── scan_fix.py                    # node: /scan (odwrócony z Webots) -> /scan_fixed dla SLAM
 ├── params/
+│   ├── slam_w3.yaml                   # stockowe parametry slam_toolbox + scan_topic: /scan_fixed
 │   └── nav2_params.yaml               # parametry Nav2 = domyślne z Jazzy + enable_stamped_cmd_vel
 ├── launch/
+│   ├── slam_w3.launch.py              # scan_fix + slam_toolbox jednym poleceniem (Checkpoint 2)
 │   └── capstone_bringup.launch.py     # opcjonalny launch: Webots + Nav2 naraz (po zbudowaniu mapy)
 └── maps/                              # miejsce na kopię mapy (README zapisuje mapę w ~/maps)
 ```
 
-To nie jest pakiet do budowania przez colcon: używasz gotowych pakietów z apt, a z tego katalogu
-bierzesz plik parametrów i opcjonalny launch.
+Budujesz go raz, razem z resztą repo ćwiczeń albo osobno:
+
+```bash
+cd ~/ros2_ws && colcon build --packages-select m7_nav2_capstone
+source ~/ros2_ws/install/setup.bash
+```
+
+**Dlaczego scan_fix?** Lidar TurtleBota w `webots_ros2` publikuje `LaserScan` „od tyłu”:
+`angle_min = +π`, `angle_max = -π`, `angle_increment < 0`. RViz, AMCL i costmapy Nav2 radzą sobie
+z tym bez problemu, ale `slam_toolbox` buduje wtedy mapę z wygiętymi, podwójnymi ścianami.
+`scan_fix` odwraca kolejność pomiarów (punkty zostają w tych samych miejscach) i publikuje wynik
+na `/scan_fixed`, a `params/slam_w3.yaml` każe SLAM-owi czytać właśnie ten topic. Nav2 w
+Checkpoincie 5 używa zwykłego `/scan`.
 
 ## Przygotowanie
 
-Potrzebujesz Ubuntu 24.04 + ROS 2 Jazzy desktop (strona kursu „ROS2 u siebie”) oraz warstwy W3:
+Potrzebujesz Ubuntu 24.04 + ROS 2 Jazzy desktop (strona kursu „ROS 2 u siebie”) oraz warstwy W3:
 Webots R2025a, `webots_ros2`, Nav2, slam_toolbox, TurtleBot3 i teleop. Pełną listę komend
 instalacji znajdziesz na stronie W3 w ramce „Instalacja warstwy W3”. Webots ma pakiety tylko dla
 amd64 (x86_64), więc na Macu z Apple Silicon tego warsztatu nie uruchomisz.
@@ -39,6 +55,7 @@ W każdym nowym terminalu najpierw wykonaj:
 
 ```bash
 source /opt/ros/jazzy/setup.bash
+source ~/ros2_ws/install/setup.bash                        # pakiet m7_nav2_capstone (po colcon build)
 CAP=~/ros2_ws/src/ros2-intro-exercises/m7_nav2_capstone   # tu leży ten katalog po sklonowaniu repo ćwiczeń
 ```
 
@@ -50,7 +67,8 @@ ros2 launch webots_ros2_turtlebot robot_launch.py
 ```
 
 Co się dzieje:
-- Webots startuje ze światem-mieszkaniem,
+- Webots startuje ze światem-mieszkaniem (przy starcie pobiera tekstury i modele z internetu; jeśli
+  brakuje mebli albo robot jest białą bryłą, zamknij Webots i uruchom launch jeszcze raz),
 - `webots_ros2_driver` publikuje `/scan`, `/odom`, `/tf` i zegar symulacji `/clock`,
 - sterownik jazdy subskrybuje `/cmd_vel` i przyjmuje **`TwistStamped`** (nie zwykły `Twist`).
 
@@ -65,12 +83,16 @@ ros2 run tf2_tools view_frames     # PDF z drzewem TF
 ## Checkpoint 2 — SLAM toolbox i RViz (15 min)
 
 ```bash
-# Terminal 2 — SLAM (w symulacji ZAWSZE use_sim_time:=true)
-ros2 launch slam_toolbox online_async_launch.py use_sim_time:=true
+# Terminal 2 — SLAM przez scan_fix (launch ma w środku use_sim_time:=true)
+ros2 launch m7_nav2_capstone slam_w3.launch.py
 
 # Terminal 3 — RViz z gotową konfiguracją Nav2 (mapa, lidar, TF, narzędzia do celów)
 ros2 launch nav2_bringup rviz_launch.py use_sim_time:=true
 ```
+
+W logu SLAM zobaczysz `/scan jest odwrócony (...), publikuję poprawiony na /scan_fixed` od
+`scan_fix` i `Slamtoolbox node is activating`. Nie uruchamiaj gołego `online_async_launch.py`:
+na surowym `/scan` z Webots mapa wychodzi krzywa.
 
 Po kilku sekundach w RViz zobaczysz szarą mapę, która rośnie, gdy robot jedzie. Zostaw to okno
 otwarte, przyda się też w trybie nawigacji.
@@ -84,7 +106,10 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -p stamped:=true
 
 Klawisze: `i` = przód, `,` = tył, `j` / `l` = obrót, `k` = stop, `q` / `z` = szybciej / wolniej.
 
-Jeździj po świecie 5-10 minut, aż mapa w RViz będzie zamknięta.
+Jeździj po świecie 5-10 minut, aż mapa w RViz będzie zamknięta. Sprawdź, czy ściany są proste,
+pojedyncze i spotykają się pod kątem prostym. Porównaj z mapą referencyjną pakietu:
+`$(ros2 pkg prefix webots_ros2_turtlebot)/share/webots_ros2_turtlebot/resource/turtlebot3_burger_example_map.pgm`.
+Wygięte albo podwójne ściany = SLAM czyta surowy `/scan` (patrz Pułapki).
 
 ## Checkpoint 4 — zapis mapy (5 min)
 
@@ -131,7 +156,9 @@ a bez niej bringup kończy się komunikatem `Failed to bring up all requested no
 1. W RViz kliknij **2D Pose Estimate** na górnym pasku.
 2. Kliknij na mapie tam, gdzie robot stoi, i przeciągnij w kierunku, w którym patrzy.
 
-Po chwili w logu zobaczysz `lifecycle_manager_navigation: Managed nodes are active`. AMCL zbiega
+Po kilku sekundach w logu zobaczysz `lifecycle_manager_navigation: Managed nodes are active`.
+Komunikat AMCL `Failed to transform initial pose in time (... extrapolation into the future ...)`
+jest niegroźny: pozycja i tak zostaje przyjęta. AMCL zbiega
 w 2-3 s: chmurka cząstek (particle cloud) skupia się wokół robota.
 
 Sprawdź, czy Nav2 i robot mówią tym samym typem wiadomości (wszędzie `TwistStamped`):
@@ -209,6 +236,14 @@ razu po starcie, tak jak w Checkpoincie 6.
 
 ## Pułapki
 
+**Mapa ze SLAM ma wygięte albo podwójne ściany**: slam_toolbox czyta surowy `/scan` z Webots
+(odwrócony, `angle_increment < 0`). Mapuj przez `ros2 launch m7_nav2_capstone slam_w3.launch.py`.
+Kontrola: `ros2 param get /slam_toolbox scan_topic` → `/scan_fixed`.
+
+**Czerwone `requested velocity ... exceeds maxVelocity` w konsoli Webots**: niegroźne. Domyślny Nav2
+(0,5 m/s) przekracza limit Burgera (ok. 0,22 m/s), Webots przycina prędkość kół. Wolniejszą jazdę
+ustawisz przez `vx_max` i `max_velocity` (Checkpoint 8).
+
 **Ścieżka jest w RViz, ale robot stoi**: Nav2 publikuje `Twist`, a TurtleBot3 w Webots czeka na
 `TwistStamped`. `ros2 topic info /cmd_vel -v` pokaże wtedy dwa różne typy. Uruchom Nav2 z
 `params_file:=$CAP/params/nav2_params.yaml` (albo `~/nav2_w3.yaml` ze strony W3).
@@ -235,5 +270,5 @@ katalogu. Zapisuj ją ze ścieżką bezwzględną (Checkpoint 4) i podawaj `map:
 - [Strona W3 w kursie](https://lucsrobotics.com/ros2-intro/#/module/11)
 - [Nav2 docs](https://docs.nav2.org/)
 - [SLAM toolbox](https://github.com/SteveMacenski/slam_toolbox)
-- [Webots ROS2](https://docs.ros.org/en/jazzy/p/webots_ros2/)
+- [Webots ROS 2](https://docs.ros.org/en/jazzy/p/webots_ros2/)
 - [Foxglove docs (opcjonalnie)](https://docs.foxglove.dev/)

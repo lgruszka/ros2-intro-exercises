@@ -1,6 +1,6 @@
 # Moduł 1 — Ćwiczenie: pierwszy własny node
 
-> Pakiet ROS2: `intro_node`. Cel: napisać minimalny node który co sekundę loguje "alive".
+> Pakiet ROS 2: `intro_node`. Cel: napisać minimalny node który co sekundę loguje "alive".
 
 ## Co dostajesz
 
@@ -21,7 +21,7 @@ m1_hello_node/
 
 ## Setup (Ubuntu 24.04 + ROS 2 Jazzy)
 
-Pakiet masz już w workspace po `git clone` repo ćwiczeń (kurs: „ROS2 u siebie”, Krok 5 —
+Pakiet masz już w workspace po `git clone` repo ćwiczeń (kurs: „ROS 2 u siebie”, Krok 5 —
 https://lucsrobotics.com/ros2-intro/#/instalacja). **Nie kopiuj** go w inne miejsce `~/ros2_ws/src` — dwie kopie tego
 samego pakietu kończą się błędem colcon `Duplicate package names`.
 
