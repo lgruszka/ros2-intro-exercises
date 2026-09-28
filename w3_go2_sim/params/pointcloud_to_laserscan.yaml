@@ -1,0 +1,22 @@
+# Chmura 3D z Velodyne VLP-16 (/velodyne_points/points) -> 2D LaserScan (/scan).
+# SLAM (slam_toolbox) i AMCL pracują na 2D skanie, więc „spłaszczamy” chmurę:
+# bierzemy punkty z pasa wysokości [min_height, max_height] mierzonego w ramce
+# target_frame i dla każdego kąta zostawiamy najbliższy punkt.
+pointcloud_to_laserscan:
+  ros__parameters:
+    use_sim_time: true
+    # base_footprint leży na podłodze (z = 0) i nie kiwa się razem z tułowiem,
+    # więc pas wysokości jest liczony od podłogi, a nie od lidaru.
+    target_frame: base_footprint
+    transform_tolerance: 0.2
+    # 0.15 m - odcina podłogę (dolne wiązki Velodyne trafiają w nią ~1,5 m przed robotem)
+    # 1.0 m  - ściany i przeszkody w sali mają >= 1 m wysokości
+    min_height: 0.15
+    max_height: 1.0
+    angle_min: -3.14159
+    angle_max: 3.14159
+    angle_increment: 0.0145   # ~0,83° - tyle, ile rozdzielczość Velodyne (440 próbek / 360°)
+    scan_time: 0.1            # lidar 10 Hz
+    range_min: 0.5            # odcina odbicia od własnego tułowia i nóg
+    range_max: 20.0
+    use_inf: true

@@ -76,7 +76,8 @@ colcon build --symlink-install --packages-select intro_node
 | `m6_urdf`         | M7 · URDF i RViz            | `m6_urdf`      | `ros2 launch m6_urdf display_arm.launch.py` |
 | `m7_turtle_hunter`| W1 · Łowca żółwi           | `m7_turtle_hunter` | `ros2 launch m7_turtle_hunter turtle_hunter_launch.py` |
 | `m7_turtle_choreo`| W2 · Choreografia + Race   | `m7_turtle_choreo` | `ros2 launch m7_turtle_choreo choreo.launch.py` |
-| `m7_nav2_capstone`| W3 · Nawigacja i SLAM (Webots) | `m7_nav2_capstone` | `ros2 launch m7_nav2_capstone slam_w3.launch.py` (wymaga Webots — patrz moduł W3) |
+| `m7_nav2_capstone`| W3 · Nawigacja i SLAM, wariant TurtleBot3 w Webots | `m7_nav2_capstone` | `ros2 launch m7_nav2_capstone slam_w3.launch.py` (wymaga Webots — patrz moduł W3) |
+| `w3_go2_sim`      | W3 · Nawigacja i SLAM, wariant Unitree Go2 w Gazebo | `w3_go2_sim` | `ros2 launch w3_go2_sim go2_sim.launch.py` (wymaga Gazebo Harmonic i repo `khaledgabr77/unitree_go2_ros2` - patrz `w3_go2_sim/README.md`) |
 | `m8_gazebo`       | M8 · Gazebo na własnym komputerze | `m8_gazebo` (config-only) | `ros2 launch m8_gazebo slam.launch.py` (ROSbot XL w Gazebo, 3 tryby) |
 | `rosbot_nav`      | W4 · Realny ROSbot XL (Husarion) | `rosbot_nav` (config-only) | `ros2 launch rosbot_nav slam.launch.py` (mapowanie/nawigacja/eksploracja na sprzęcie) |
 | `go2_autonomy`    | W5/W6 · Unitree Go2        | `go2_bringup`/`go2_bridge`/… | patrz `go2_autonomy/README.md` (most ruchu sport API) |
@@ -85,6 +86,10 @@ colcon build --symlink-install --packages-select intro_node
 
 Folder `mN_*` ma własny `README.md` (krok po kroku) i `validate.sh` (auto-sprawdzenie). Pakiety
 config-only (`m8_gazebo`, `rosbot_nav`) i sprzętowe (`go2_autonomy`) mają własne README z pełną instrukcją.
+
+`w3_go2_sim` sam się zbuduje, ale uruchomisz go dopiero z zewnętrznym repo symulacji Go2 (CHAMP),
+sklonowanym obok w `~/ros2_ws/src`. Instalację Gazebo, `rosdep --skip-keys` i `colcon --base-paths`
+opisuje `w3_go2_sim/README.md`.
 
 ---
 
