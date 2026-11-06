@@ -1,0 +1,36 @@
+# Kontrolery ros2_control dla FAKE HARDWARE (use_fake_hardware:=true).
+#
+# Dlaczego osobny plik: oficjalny franka_fr3_moveit_config/config/fr3_ros_controllers.yaml
+# ustawia fr3_arm_controller na interfejs EFFORT (moment w przegubach, z wzmocnieniami PID).
+# Na prawdziwym FR3 to właściwy wybór. Fake hardware (mock_components/GenericSystem) tylko
+# kopiuje komendę do stanu tego samego typu: zadany moment ląduje w stanie "effort", a pozycja
+# przegubu się nie zmienia. MoveIt zgłasza wtedy udane wykonanie, ale ramię stoi
+# (sprawdzone na żywo: docs/qa/fr3/fr3_verify.md, test T1).
+# Tu ten sam kontroler (ta sama nazwa i te same przeguby) dostaje interfejs POSITION.
+/**:
+  controller_manager:
+    ros__parameters:
+      update_rate: 100  # Hz - w symulacji wystarczy, oszczędza CPU (prawdziwy FR3: 1000 Hz)
+
+      fr3_arm_controller:
+        type: joint_trajectory_controller/JointTrajectoryController
+
+      joint_state_broadcaster:
+        type: joint_state_broadcaster/JointStateBroadcaster
+
+/**:
+  fr3_arm_controller:
+    ros__parameters:
+      command_interfaces:
+        - position
+      state_interfaces:
+        - position
+        - velocity
+      joints:
+        - fr3_joint1
+        - fr3_joint2
+        - fr3_joint3
+        - fr3_joint4
+        - fr3_joint5
+        - fr3_joint6
+        - fr3_joint7

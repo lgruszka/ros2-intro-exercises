@@ -1,0 +1,41 @@
+# Kontrolery, przez które MoveItPy wykonuje trajektorie (W8).
+# Nazwy i action_ns jak w oficjalnym franka_fr3_moveit_config/config/fr3_controllers.yaml:
+#   fr3_arm_controller -> /fr3_arm_controller/follow_joint_trajectory (ramię, ros2_control)
+#   franka_gripper     -> /franka_gripper/gripper_action (chwytak, node franka_gripper)
+moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControllerManager
+
+moveit_simple_controller_manager:
+  controller_names:
+    - fr3_arm_controller
+    - franka_gripper
+
+  fr3_arm_controller:
+    type: FollowJointTrajectory
+    action_ns: follow_joint_trajectory
+    default: true
+    joints:
+      - fr3_joint1
+      - fr3_joint2
+      - fr3_joint3
+      - fr3_joint4
+      - fr3_joint5
+      - fr3_joint6
+      - fr3_joint7
+
+  franka_gripper:
+    type: GripperCommand
+    action_ns: gripper_action
+    default: true
+    joints:
+      - fr3_finger_joint1
+      - fr3_finger_joint2
+    # Siła chwytu [N]. Na prawdziwym FR3 zamknięcie palców to grasp z tą siłą.
+    max_effort: 20.0
+    # Zamknięcie na klocku 4 cm nie osiąga celu "palce w 0 m" i franka_gripper zgłasza
+    # porażkę, choć klocek jest trzymany. allow_failure traktuje to jako sukces.
+    allow_failure: true
+
+trajectory_execution:
+  allowed_execution_duration_scaling: 1.2
+  allowed_goal_duration_margin: 0.5
+  allowed_start_tolerance: 0.01

@@ -1,0 +1,21 @@
+# Konfiguracja MoveItPy (W8). Node z moveit_py sam ładuje plannery i scenę -
+# ten plik mówi mu, jak zbudować planning scene monitor i który pipeline włączyć.
+# Topici są stałe: stan przegubów z /joint_states (joint_state_publisher łączy ramię
+# i chwytak), a scenę (stół, klocek, attach) node publikuje na /monitored_planning_scene -
+# ten topic ma display PlanningScene w RViz z launcha (config/pick_place.rviz).
+planning_scene_monitor_options:
+  name: "planning_scene_monitor"
+  robot_description: "robot_description"
+  wait_for_initial_state_timeout: 10.0
+
+planning_pipelines:
+  pipeline_names: ["ompl"]
+
+plan_request_params:
+  planning_attempts: 3
+  planning_pipeline: ompl
+  planner_id: "RRTConnectkConfigDefault"
+  planning_time: 1.0
+  # 0.5 wystarcza w symulacji. Na prawdziwym FR3 zacznij od 0.1 (ramka w W8).
+  max_velocity_scaling_factor: 0.5
+  max_acceleration_scaling_factor: 0.5

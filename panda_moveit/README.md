@@ -1,5 +1,10 @@
 # panda_moveit — Franka Panda + MoveIt 2 (warsztaty W7/W8)
 
+> **Zastąpiony przez `fr3_moveit` (2026-11).** Kurs uczy W7/W8 na Franka Research 3 (FR3):
+> oficjalny `franka_ros2` dla Jazzy wspiera FR3, a nie Pandę (FER), więc ten sam kod działa
+> w symulacji (fake hardware z franka_ros2) i na prawdziwym FR3. Ten pakiet zostaje w repo tylko
+> jako archiwum (symulacja Pandy z `moveit_resources`). Nowe materiały: `../fr3_moveit/README.md`.
+
 Pakiet ćwiczeń do manipulacji: **pick & place** na ramieniu Franka Emika Panda w symulacji
 (ros2_control **mock hardware** — bez Gazebo, bez fizycznego robota). Ubuntu 24.04 + ROS 2 Jazzy.
 

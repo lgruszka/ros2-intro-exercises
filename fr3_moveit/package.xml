@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>fr3_moveit</name>
+  <version>0.1.0</version>
+  <description>Warsztaty W7/W8 - Franka Research 3 (FR3) + MoveIt 2: pick &amp; place z moveit_py.
+    Bez robota: fake hardware z franka_ros2 (use_fake_hardware:=true). Z robotem: ten sam kod
+    na prawdziwym FR3 (robot_ip:=IP_ROBOTA use_fake_hardware:=false).</description>
+  <maintainer email="lucs.robotics@gmail.com">LucsRobotics</maintainer>
+  <license>MIT</license>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>control_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>moveit_msgs</exec_depend>
+  <exec_depend>shape_msgs</exec_depend>
+  <exec_depend>moveit_py</exec_depend>
+  <exec_depend>moveit_configs_utils</exec_depend>
+  <exec_depend>moveit_ros_visualization</exec_depend>
+  <exec_depend>franka_fr3_moveit_config</exec_depend>
+  <exec_depend>franka_bringup</exec_depend>
+  <exec_depend>franka_description</exec_depend>
+  <exec_depend>franka_gripper</exec_depend>
+  <exec_depend>franka_hardware</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>joint_trajectory_controller</exec_depend>
+  <exec_depend>joint_state_broadcaster</exec_depend>
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+
+  <export><build_type>ament_python</build_type></export>
+</package>
