@@ -87,8 +87,70 @@ Potem w **każdym** terminalu (ścieżki `tools/…` są względne — wołaj je
 ```bash
 cd ~/go2_ws/src/ros2-intro-exercises/go2_autonomy
 source tools/go2_env.sh        # ws + CycloneDDS + restart daemona DDS
-ros2 topic hz /utlidar/cloud_base   # ~15 Hz = robot gada (topic hz sam dopasowuje QoS)
+ros2 topic hz /utlidar/cloud_base   # Go2 z L1: ~15 Hz = robot gada (topic hz sam dopasowuje QoS)
 ```
+Masz Go2 z lidarem **L2** (nowsze egzemplarze)? Zanim zaczniesz kalibrację, przejdź sekcję
+„Go2 z lidarem L2” niżej.
+
+---
+
+## Go2 z lidarem L2 (nowsze egzemplarze)
+
+Go2 ma na głowie lidar 4D Unitree. Starsze egzemplarze mają **L1**, nowe **L2**. Ten stos
+(domyślne topiki, pas wysokości, `range_min`, ok. 15 Hz) był strojony i zwalidowany na Go2 z **L1**.
+Na Go2 z L2 nie był jeszcze uruchamiany. Configi zostają bez zmian, bo w źródłach Unitree nie ma
+różnicy, która by je zmieniała.
+
+**Co mówią źródła Unitree (stan: listopad 2026):**
+- Strona produktu (https://www.unitree.com/go2), instrukcja Go2 V4.3
+  (https://marketing.unitree.com/article/en/Go2/User_Manual.html) i „About Go2” w dokumentacji
+  deweloperskiej (https://support.unitree.com/home/en/developer/about_Go2) podają lidar **L2**
+  (360° × 96°). Do stycznia 2026 strona produktu podawała L1 (kopie strony w Internet Archive).
+  Numeru seryjnego ani daty dostawy, od której Go2 ma L2, Unitree nie podaje.
+- L1 vs L2 (instrukcje czujników: L1 v1.1 2024.06, L2 v1.1 2024.10 na `oss-global-cdn.unitree.com`):
+  efektywnie 21 600 vs 64 000 punktów/s, skan poziomy 11 vs 5,55 Hz, skan pionowy 180 vs 216 Hz,
+  FOV 360° × 90° vs 360° × 90° (360° × 96° w trybie NEGA), zasięg przy odbiciu 90%: 20 m (L1 PM)
+  albo 30 m (L1 RM) vs 30 m, strefa martwa 0,05 m w obu, IMU lidaru raportuje 250 vs 500 Hz.
+- „LiDAR Services Interface” (https://support.unitree.com/home/en/developer/LiDAR_service) opisuje
+  jeden zestaw topików, bez podziału na L1 i L2: `/utlidar/cloud` (ramka `utlidar_lidar`)
+  i `/utlidar/cloud_deskewed` (ramka `odom`), plus `height_map_array`, `range_info` i `switch`.
+  README `unitree_ros2` też pokazuje `/utlidar/cloud` z ramką `utlidar_lidar`.
+- **`/utlidar/cloud_base` nie jest opisany w dokumentacji Unitree.** Ten stos go używa, bo był
+  dostępny na Go2 z L1. Na L2 jego obecność jest niepotwierdzona.
+- Osobne SDK `unilidar_sdk2` (topiki `/unilidar/cloud`, `/unilidar/imu`) dotyczy lidaru L2
+  podłączonego wprost do komputera. Lidar w głowie Go2 obsługuje oprogramowanie robota.
+- Montaż (pochylenie) L2 w Go2: niepotwierdzony. Domyślne `pitch -0.285` rad (~16°) w
+  `tools/go2_scan_calib_node.py` pochodzi z Go2 z L1.
+
+**Co sprawdzić na robocie z L2** (po `source tools/go2_env.sh`):
+```bash
+ros2 topic list | grep utlidar                                    # są cloud, cloud_deskewed, cloud_base?
+ros2 topic echo --once --field header.frame_id /utlidar/cloud      # Go2 z L1: utlidar_lidar
+ros2 topic echo --once --field header.frame_id /utlidar/cloud_base # Go2 z L1: base_link
+ros2 topic hz /utlidar/cloud                                       # Go2 z L1: ~15 Hz
+ros2 topic hz /utlidar/cloud_base                                  # Go2 z L1: ~15 Hz
+ros2 topic echo --once --field width /utlidar/cloud                # Go2 z L1: ~1400 punktów
+ros2 topic info --verbose /utlidar/cloud_base                      # Go2 z L1: BEST_EFFORT
+```
+Punkty na sekundę ≈ `width` × Hz. Przykład z dokumentacji Unitree (2023, czasy L1) daje ok.
+1400 × 15 ≈ 21 000, zgodnie z kartą L1. Wyraźnie więcej wskazuje na L2. To reguła praktyczna,
+nie metoda Unitree (firmware może przerzedzać chmurę).
+
+**Jeśli wszystko się zgadza** (jest `cloud_base` w `base_link`): pracujesz jak na L1. Pas wysokości
+i `range_min` sprawdź w `tools/go2_scan_calib_gui.py` (sekcja 0), bo wartości startowe są z L1.
+
+**Jeśli nie ma `/utlidar/cloud_base`:** launche nie dostaną skanu. Wtedy:
+1. Zmierz montaż na surowej chmurze: `python3 tools/go2_scan_calib_node.py` (czyta `/utlidar/cloud`),
+   w drugim terminalu `ros2 param set /scan_calib pitch …` (też `roll`, `yaw`, `z`), w RViz
+   Fixed Frame = `base_link`, display LaserScan `/scan_calib` (Reliability: Best Effort), aż skan
+   rysuje ściany.
+2. Wpisz te wartości do static TF `base_link → utlidar_lidar` w `go2_bringup/launch/mapping.launch.py`
+   (`base_to_lidar_static_tf`) i `go2_bringup/launch/nav.launch.py` (`static_tf_lidar`):
+   dopisz `--roll`, `--pitch`, `--yaw` i popraw `--z` (dziś transformacja jest zerowa, bo
+   `cloud_base` jest już w `base_link`).
+3. Uruchamiaj oba launche z `cloud_topic:=/utlidar/cloud` (mapowanie i nawigacja muszą dostać
+   tę samą chmurę).
+4. Pas wysokości w `pointcloud_to_laserscan.yaml` ustaw od nowa i dopiero potem mapuj.
 
 ---
 
@@ -157,7 +219,8 @@ W RViz/Foxglove:
 ## Pułapki Go2 (skrót — pełne omówienie w W5)
 
 - **`/utlidar/cloud_base`, nie `/utlidar/cloud`** — firmware daje chmurę już w `base_link`
-  (zna montaż lidaru), bez ręcznej kalibracji rotacji.
+  (zna montaż lidaru), bez ręcznej kalibracji rotacji. Sprawdzone na Go2 z L1; na L2 patrz
+  „Go2 z lidarem L2”.
 - **QoS:** lidar i `/scan` publikują `BEST_EFFORT`. Twój węzeł subskrybujący `RELIABLE` (domyślny
   QoS) nic nie dostanie, a w logu pojawi się WARN „offering incompatible QoS” — subskrybuj profilem
   `sensor_data`. `ros2 topic echo`/`hz` na Jazzy same dopasowują QoS, więc to, że widzisz dane

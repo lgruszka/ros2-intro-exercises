@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
-"""Online kalibrator cloud→laserscan dla Go2 L1.
+"""Online kalibrator cloud→laserscan dla Go2 (lidar 4D Unitree L1 albo L2).
 
 Własny pointcloud_to_laserscan z DYNAMICZNYMI parametrami: strojysz orientację
 lidaru (roll/pitch/yaw), wysokość (z), pas wysokości (min/max_height) i zasięg
 (range_min/max) przez `ros2 param set` i NATYCHMIAST widzisz /scan_calib w RViz —
 bez restartu stacku. Gdy znajdziesz dobre wartości → wpisz je do:
-  - static_tf_lidar (roll/pitch/yaw/z) w real.launch.py,
+  - static TF base_link -> utlidar_lidar (roll/pitch/yaw/z) w go2_bringup/launch/
+    mapping.launch.py (base_to_lidar_static_tf) i nav.launch.py (static_tf_lidar),
+    razem z cloud_topic:=/utlidar/cloud (patrz README, „Go2 z lidarem L2”),
   - pointcloud_to_laserscan.yaml (min/max_height, range_min/max).
+Wartości domyślne (pitch -0.285 rad ≈ -16°, z, pas) pochodzą z Go2 z lidarem L1.
+Montażu L2 w Go2 Unitree nie publikuje - na L2 zmierz go od nowa.
 
 Subskrybuje /utlidar/cloud (surowa), publikuje /scan_calib (frame_id=base_link).
 Node sam liczy transform — NIE potrzebuje TF ani stacku do strojenia kształtu
