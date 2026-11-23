@@ -83,6 +83,7 @@ colcon build --symlink-install --packages-select intro_node
 | `go2_autonomy`    | W5/W6 · Unitree Go2        | `go2_bringup`/`go2_bridge`/… | patrz `go2_autonomy/README.md` (most ruchu sport API) |
 | `fr3_moveit`      | W7/W8 · Franka Research 3 + MoveIt 2 | `fr3_moveit` | W7: `ros2 launch fr3_moveit moveit.launch.py`; W8: `ros2 launch fr3_moveit pick_place.launch.py` + `ros2 run fr3_moveit pick_place` (fake hardware z franka_ros2 albo prawdziwy FR3; wymaga workspace franka_ros2 - patrz `fr3_moveit/README.md`) |
 | `panda_moveit`    | archiwum (zastąpiony przez `fr3_moveit`) | `panda_moveit` | dawna wersja W7/W8 na symulowanej Pandzie (mock hardware z `moveit_resources`) |
+| `r1_basics`       | Start/W9/W10 · Unitree R1 EDU (humanoid) | `r1_basics` | W9: `ros2 launch r1_basics walk.launch.py use_mock:=true`; W10: `ros2 launch r1_basics arm.launch.py use_mock:=true` + `camera.launch.py` (makieta `r1_mock` bez robota; na R1 EDU wymaga wiadomości `unitree_api`/`unitree_hg` z unitree_ros2 - patrz `r1_basics/README.md`) |
 | `m10_perception`  | M10 · Percepcja: kamera i obraz | `m10_perception` | `ros2 launch m10_perception toy_pipeline.launch.py` (syntetyczna kamera + detektor koloru, zero sprzętu) |
 
 Folder `mN_*` ma własny `README.md` (krok po kroku) i `validate.sh` (auto-sprawdzenie). Pakiety

@@ -1,0 +1,58 @@
+# Parametry węzłów r1_basics (kontrakt: docs/r1_plan.md §10 w repo kursu).
+# Limity prędkości są celowo niskie - podnoś je stopniowo na robocie, nigdy na pierwszym uruchomieniu.
+cmd_vel_bridge:
+  ros__parameters:
+    max_vx: 0.3          # [m/s] przód/tył
+    max_vy: 0.2          # [m/s] bok
+    max_wz: 0.5          # [rad/s] obrót
+    duration_s: 0.5      # robot idzie tyle sekund od ostatniej komendy, potem sam staje
+    rate_hz: 10.0        # ponawianie SetVelocity
+    cmd_timeout_s: 0.5   # cisza na /cmd_vel dłużej niż tyle -> [0, 0, 0]
+
+dead_reckoning:
+  ros__parameters:
+    rate_hz: 20.0
+    cmd_timeout_s: 0.5
+    publish_tf: true     # odom -> base_link
+
+goto_point:
+  ros__parameters:
+    odom_topic: /r1/odom
+    k_lin: 0.8
+    k_yaw: 1.5
+    tol: 0.10            # [m]
+    max_v: 0.3           # [m/s] długość wektora (vx, vy)
+    max_wz: 0.5          # [rad/s]
+    rate_hz: 10.0
+    odom_timeout_s: 0.5
+    # goal_x / goal_y: podaj przy starcie (-p goal_x:=1.5 -p goal_y:=0.8) albo wyślij /goal_pose z RViz
+
+arm_sequence:
+  ros__parameters:
+    ramp_s: 1.0           # rampa wagi 0 -> 1 i 1 -> 0
+    move_s: 2.0           # minimalny czas przejazdu do pozy
+    rate_hz: 100.0
+    max_joint_speed: 1.0  # [rad/s] górny limit prędkości celu
+    lowstate_timeout_s: 0.2
+    waves: 3
+    interp: cosine        # cosine albo linear
+    check_fsm: true       # najpierw GetFsmId; w 811 (chód) odmowa
+
+camera:
+  ros__parameters:
+    port: 5001            # 5001 obraz 1280x720, 5002/5003 lewe/prawe oko 544x448
+    pipeline: ''          # puste = domyślny potok; własny może zawierać {port}
+    depth_device: ''      # np. /dev/video-dep (po sudo unitree_depth_start na docku)
+
+r1_mock:
+  ros__parameters:
+    fsm: 811              # 811 chód, 4 stanie zablokowane
+    reply_code: 0         # kod odpowiedzi na 7105 (127 = jak w zgłoszeniach społeczności)
+    imu_yaw0: 0.3         # [rad] kurs IMU na starcie (prawdziwe IMU nie startuje od zera)
+    imu_yaw_bias: 0.0     # [rad/s] dryf kursu IMU
+    imu_noise: 0.0        # [rad] szum kursu IMU (odchylenie standardowe)
+    rate_hz: 100.0        # /lowstate
+    vel_tau: 0.15         # [s] opóźnienie odpowiedzi na prędkość
+    arm_max_speed: 3.0    # [rad/s] jak szybko przeguby makiety nadążają za celem
+    inject_fault_s: 0.0   # > 0: po tylu s przejęcia arm_sdk motorstate=1 w prawym łokciu (test)
+    pause_lowstate: false # true: makieta przestaje publikować /lowstate (test nieświeżego stanu)

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  CycloneDDS pod sieć robota Unitree R1 (kabel do switcha robota, komputer 192.168.123.99/24).
+
+  USTAW NetworkInterface name="..." na interfejs, którym łączysz się z robotem:
+    ip -br addr          # np. enxXXXX = adapter USB-Ethernet, enp2s0 = wbudowany
+  Bez właściwego interfejsu nie zobaczysz /lowstate ani /api/sport/response.
+  Użycie (w każdym terminalu):
+    export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+    export CYCLONEDDS_URI=file://$(ros2 pkg prefix r1_basics)/share/r1_basics/config/cyclonedds_r1.xml
+-->
+<CycloneDDS>
+    <Domain Id="any">
+        <General>
+            <Interfaces>
+                <NetworkInterface name="enp2s0" priority="default" multicast="default" />
+            </Interfaces>
+        </General>
+    </Domain>
+</CycloneDDS>
