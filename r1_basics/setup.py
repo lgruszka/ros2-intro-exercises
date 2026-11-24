@@ -30,6 +30,7 @@ setup(
             'arm_sequence = r1_basics.arm_sequence:main',
             'camera = r1_basics.camera:main',
             'r1_mock = r1_basics.r1_mock:main',
+            'r1_sim = r1_basics.r1_sim:main',
         ],
     },
 )

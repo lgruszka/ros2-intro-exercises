@@ -2,8 +2,11 @@
 
 Użycie:
     ros2 launch r1_basics walk.launch.py use_mock:=true goal_x:=1.5 goal_y:=0.8   # makieta
+    ros2 launch r1_basics walk.launch.py sim_dir:=$HOME/r1_policy goal_x:=1.5      # fizyka MuJoCo + polityka z W11
     ros2 launch r1_basics walk.launch.py                                           # robot (cel z RViz /goal_pose)
 """
+import os
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
@@ -26,7 +29,12 @@ def setup(context):
         goto_params.append({'goal_x': float(goal_x), 'goal_y': float(goal_y)})
     actions = [node('cmd_vel_bridge', [config]), node('dead_reckoning', [config]),
                node('goto_point', goto_params)]
-    if use_mock:
+    sim_dir = os.path.expanduser(LaunchConfiguration('sim_dir').perform(context))
+    if sim_dir:
+        actions.insert(0, node('r1_sim', [config, {'model': os.path.join(sim_dir, 'scene', 'scene.xml'),
+                                                     'policy': os.path.join(sim_dir, 'policy.onnx'),
+                                                     'meta': os.path.join(sim_dir, 'sim_meta.json')}]))
+    elif use_mock:
         bias = float(LaunchConfiguration('imu_yaw_bias').perform(context))
         actions.insert(0, node('r1_mock', [config, {'imu_yaw_bias': bias}]))
     return actions
@@ -40,5 +48,7 @@ def generate_launch_description():
                               description='cel x [m] w odom (puste = czekaj na /goal_pose)'),
         DeclareLaunchArgument('goal_y', default_value='', description='cel y [m] w odom'),
         DeclareLaunchArgument('imu_yaw_bias', default_value='0.0', description='makieta: dryf kursu IMU [rad/s]'),
+        DeclareLaunchArgument('sim_dir', default_value='',
+                              description='W11: katalog z policy.onnx, sim_meta.json i scene/ -> r1_sim (MuJoCo)'),
         OpaqueFunction(function=setup),
     ])

@@ -1,0 +1,238 @@
+{
+  "task": "Unitree-R1-Flat",
+  "mujoco_version": "3.5.0",
+  "decimation": 4,
+  "init_height": 0.76,
+  "joint_names": [
+    "left_hip_pitch_joint",
+    "left_hip_roll_joint",
+    "left_hip_yaw_joint",
+    "left_knee_joint",
+    "left_ankle_pitch_joint",
+    "left_ankle_roll_joint",
+    "right_hip_pitch_joint",
+    "right_hip_roll_joint",
+    "right_hip_yaw_joint",
+    "right_knee_joint",
+    "right_ankle_pitch_joint",
+    "right_ankle_roll_joint",
+    "waist_roll_joint",
+    "waist_yaw_joint",
+    "left_shoulder_pitch_joint",
+    "left_shoulder_roll_joint",
+    "left_shoulder_yaw_joint",
+    "left_elbow_joint",
+    "left_wrist_roll_joint",
+    "right_shoulder_pitch_joint",
+    "right_shoulder_roll_joint",
+    "right_shoulder_yaw_joint",
+    "right_elbow_joint",
+    "right_wrist_roll_joint"
+  ],
+  "nu": 24,
+  "opt": {
+    "timestep": 0.005,
+    "integrator": 3,
+    "cone": 0,
+    "solver": 2,
+    "jacobian": 2,
+    "iterations": 10,
+    "tolerance": 1e-08,
+    "ls_iterations": 20,
+    "ls_tolerance": 0.01,
+    "ccd_iterations": 50,
+    "impratio": 1.0,
+    "gravity": [
+      0.0,
+      0.0,
+      -9.81
+    ],
+    "enableflags": 0,
+    "disableflags": 0
+  },
+  "check": {
+    "actuator_kp": [
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      40.0,
+      40.0,
+      40.0,
+      40.0,
+      100.0,
+      100.0,
+      40.0,
+      40.0,
+      40.0,
+      40.0,
+      20.0,
+      20.0,
+      20.0,
+      20.0,
+      20.0,
+      20.0
+    ],
+    "actuator_kd": [
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "actuator_forcerange": [
+      [
+        -60.0,
+        60.0
+      ],
+      [
+        -60.0,
+        60.0
+      ],
+      [
+        -60.0,
+        60.0
+      ],
+      [
+        -60.0,
+        60.0
+      ],
+      [
+        -60.0,
+        60.0
+      ],
+      [
+        -60.0,
+        60.0
+      ],
+      [
+        -60.0,
+        60.0
+      ],
+      [
+        -60.0,
+        60.0
+      ],
+      [
+        -50.0,
+        50.0
+      ],
+      [
+        -50.0,
+        50.0
+      ],
+      [
+        -50.0,
+        50.0
+      ],
+      [
+        -50.0,
+        50.0
+      ],
+      [
+        -60.0,
+        60.0
+      ],
+      [
+        -60.0,
+        60.0
+      ],
+      [
+        -60.0,
+        60.0
+      ],
+      [
+        -60.0,
+        60.0
+      ],
+      [
+        -60.0,
+        60.0
+      ],
+      [
+        -60.0,
+        60.0
+      ],
+      [
+        -33.0,
+        33.0
+      ],
+      [
+        -33.0,
+        33.0
+      ],
+      [
+        -33.0,
+        33.0
+      ],
+      [
+        -33.0,
+        33.0
+      ],
+      [
+        -33.0,
+        33.0
+      ],
+      [
+        -33.0,
+        33.0
+      ]
+    ],
+    "dof_armature": [
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01
+    ],
+    "body_mass_total": 28.931924000000002
+  }
+}

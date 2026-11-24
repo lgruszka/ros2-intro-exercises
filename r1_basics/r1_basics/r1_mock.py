@@ -44,8 +44,8 @@ JUMP_WARN_RAD = 0.05           # skok celu > 0.05 rad między wiadomościami (= 
 
 
 class R1Mock(Node):
-    def __init__(self):
-        super().__init__('r1_mock')
+    def __init__(self, node_name='r1_mock'):
+        super().__init__(node_name)
         self.fsm = int(self.declare_parameter('fsm', FSM_WALK).value)
         self.declare_parameter('reply_code', 0)
         self.imu_yaw_bias = declare_float(self, 'imu_yaw_bias', 0.0)
@@ -88,7 +88,7 @@ class R1Mock(Node):
         self.last_step = time.monotonic()
         self.create_timer(1.0 / max(rate_hz, 1.0), self.step)
         self.get_logger().info(
-            f'r1_mock: FSM {self.fsm} ({fsm_name(self.fsm)}), lowstate {rate_hz:.0f} Hz, '
+            f'{self.get_name()}: FSM {self.fsm} ({fsm_name(self.fsm)}), lowstate {rate_hz:.0f} Hz, '
             f'imu_yaw0 {self.imu_yaw0} rad, imu_yaw_bias {self.imu_yaw_bias} rad/s, '
             f'reply_code {self.get_parameter("reply_code").value}')
 

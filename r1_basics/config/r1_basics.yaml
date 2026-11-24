@@ -56,3 +56,13 @@ r1_mock:
     arm_max_speed: 3.0    # [rad/s] jak szybko przeguby makiety nadążają za celem
     inject_fault_s: 0.0   # > 0: po tylu s przejęcia arm_sdk motorstate=1 w prawym łokciu (test)
     pause_lowstate: false # true: makieta przestaje publikować /lowstate (test nieświeżego stanu)
+
+r1_sim:
+  ros__parameters:
+    model: ''             # plik .mjb z export_sim.py (W11), np. ~/r1_policy/r1_flat.mjb
+    policy: ''            # policy.onnx z treningu W11 (z metadanymi mjlab)
+    meta: ''              # sim_meta.json z export_sim.py (krok, wysokość startowa)
+    fsm: 811
+    reply_code: 0
+    imu_yaw0: 0.3         # [rad] kurs IMU na starcie, jak w r1_mock
+    rate_hz: 50.0         # = krok polityki 20 ms (4 kroki fizyki po 5 ms)

@@ -1,4 +1,4 @@
-# r1_basics - Unitree R1 EDU w ROS 2 Jazzy (warsztaty W9/W10)
+# r1_basics - Unitree R1 EDU w ROS 2 Jazzy (warsztaty W9/W10/W11)
 
 Pakiet ćwiczeń do humanoida **Unitree R1 EDU**: chód z `/cmd_vel` i dojazd do punktu (W9) oraz ręce,
 talia i głowa przez `arm_sdk` plus obraz z kamery w głowie (W10). Ubuntu 24.04 + ROS 2 Jazzy.
@@ -22,6 +22,7 @@ talia i głowa przez `arm_sdk` plus obraz z kamery w głowie (W10). Ubuntu 24.04
 | `arm_sequence` | ręce + talia + głowa przez `arm_sdk` (machanie, rozglądanie, skinienie) | `/lowstate` → `/arm_sdk` (100 Hz, waga w `mode_pr`) | `ramp_s 1.0`, `move_s 2.0`, `rate_hz 100.0`, `max_joint_speed 1.0`, `check_fsm true` |
 | `camera` | strumień RTP H.264 (UDP) → obraz | port UDP 5001 → `/r1/camera/image_raw` (`camera_link`), opcj. `/r1/camera/depth` | `port 5001`, `pipeline`, `depth_device` |
 | `r1_mock` | makieta robota | `/api/sport/request`, `/arm_sdk` → `/api/sport/response`, `/lowstate`, `/r1/mock/ground_truth` | `fsm 811`, `reply_code 0`, `imu_yaw_bias 0.0` |
+| `r1_sim` | W11: R1 w fizyce MuJoCo z polityką chodu z RL (kontrakt jak `r1_mock`, bez `arm_sdk`) | `/api/sport/request` → `/api/sport/response`, `/lowstate`, `/r1/mock/ground_truth`, usługa `/r1/sim/reset` | `model`, `policy`, `meta`, `rate_hz 50.0` |
 
 Wszystkie parametry z opisami: `config/r1_basics.yaml`. Nazwy węzłów, tematów i parametrów są takie same
 jak w drabinkach przeglądarkowych kursu („ten sam kod na robocie”).
@@ -140,6 +141,28 @@ ros2 run rqt_image_view rqt_image_view /r1/camera/image_raw
 Czego makieta nie robi: nie ma fizyki chodu (prędkość dochodzi do zadanej z opóźnieniem 0,15 s,
 bez poślizgów i bez upadków), nie ma kolizji rąk, FSM jest uproszczony (wszystkie przejścia dozwolone,
 oprócz 811 przy aktywnym `arm_sdk`).
+
+## W11: fizyka MuJoCo z polityką chodu (`r1_sim`)
+
+Zamiast makiety: R1 w MuJoCo (CPU), nogami i rękami steruje polityka wytrenowana metodą RL w
+`unitree_rl_mjlab` (zadanie `Unitree-R1-Flat`). Węzły z W9 działają bez zmian. **To nasza polityka,
+nie wbudowany sterownik Unitree - tylko do symulacji** (na robocie wymagałaby trybu debug).
+
+```bash
+pip install --break-system-packages mujoco==3.5.0 onnxruntime   # mujoco jak w treningu (sim_meta.json)
+# a) gotowa polityka z repo (sim/): najpierw siatki R1 z unitree_rl_mjlab (ok. 22 MB)
+./tools/get_meshes.sh
+ros2 launch r1_basics walk.launch.py sim_dir:=$(pwd)/sim goal_x:=1.5 goal_y:=0.8
+# b) Twoja polityka z W11: katalog z policy.onnx, sim_meta.json i scene/ (tools/export_sim.py na maszynie z GPU)
+ros2 launch r1_basics walk.launch.py sim_dir:=$HOME/r1_policy goal_x:=1.5 goal_y:=0.8
+# prawda z symulacji vs odometria zliczeniowa:
+ros2 topic echo /r1/mock/ground_truth --field pose.pose.position
+# upadek (np. po FSM 1): ros2 service call /r1/sim/reset std_srvs/srv/Trigger
+```
+
+Pliki: `r1_basics/policy_sim.py` (MuJoCo + ONNX Runtime bez ROS: 83 obserwacje -> 24 cele przegubów co 20 ms),
+`r1_basics/r1_sim.py` (węzeł ROS 2), `tools/export_sim.py` (eksport sceny i opcji fizyki z mjlab),
+`tools/get_meshes.sh`, `sim/` (nasza polityka i scena; licencja siatek i modelu: Apache-2.0, © Unitree Robotics).
 
 ## Na prawdziwym R1 EDU
 
