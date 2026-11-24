@@ -1,4 +1,4 @@
-# r1_basics - Unitree R1 EDU w ROS 2 Jazzy (warsztaty W9/W10/W11)
+# r1_basics - Unitree R1 EDU w ROS 2 Jazzy (warsztaty W9-W12)
 
 Pakiet ćwiczeń do humanoida **Unitree R1 EDU**: chód z `/cmd_vel` i dojazd do punktu (W9) oraz ręce,
 talia i głowa przez `arm_sdk` plus obraz z kamery w głowie (W10). Ubuntu 24.04 + ROS 2 Jazzy.
@@ -22,7 +22,8 @@ talia i głowa przez `arm_sdk` plus obraz z kamery w głowie (W10). Ubuntu 24.04
 | `arm_sequence` | ręce + talia + głowa przez `arm_sdk` (machanie, rozglądanie, skinienie) | `/lowstate` → `/arm_sdk` (100 Hz, waga w `mode_pr`) | `ramp_s 1.0`, `move_s 2.0`, `rate_hz 100.0`, `max_joint_speed 1.0`, `check_fsm true` |
 | `camera` | strumień RTP H.264 (UDP) → obraz | port UDP 5001 → `/r1/camera/image_raw` (`camera_link`), opcj. `/r1/camera/depth` | `port 5001`, `pipeline`, `depth_device` |
 | `r1_mock` | makieta robota | `/api/sport/request`, `/arm_sdk` → `/api/sport/response`, `/lowstate`, `/r1/mock/ground_truth` | `fsm 811`, `reply_code 0`, `imu_yaw_bias 0.0` |
-| `r1_sim` | W11: R1 w fizyce MuJoCo z polityką chodu z RL (kontrakt jak `r1_mock`, bez `arm_sdk`) | `/api/sport/request` → `/api/sport/response`, `/lowstate`, `/r1/mock/ground_truth`, usługa `/r1/sim/reset` | `model`, `policy`, `meta`, `rate_hz 50.0` |
+| `r1_sim` | W11: R1 w fizyce MuJoCo z polityką chodu z RL (kontrakt jak `r1_mock`); W12: `interface:=lowcmd` = jak tryb debug, wirtualna szubienica | W11: `/api/sport/request` → `/api/sport/response`, `/lowstate`; W12: `/lowcmd`, `/r1/sim/gantry`, `/r1/sim/remote` → `/lowstate`; oba: `/r1/mock/ground_truth`, `/r1/sim/reset` | `model`, `policy`, `meta`, `interface`, `gantry`, `cmd_delay_ms` |
+| `r1_policy` | W12: polityka jako sterownik niskiego poziomu, stany PASSIVE / FIXSTAND / WALK. **Na robocie tylko na szubienicy** | `/cmd_vel`, `/lowstate` (w tym pilot), `/r1/policy/mode` → `/lowcmd`, `/r1/policy/state` | `policy`, `max_vx 0.3`, `max_vy 0.2`, `max_wz 0.5`, `lowstate_timeout_s 0.1`, `cmd_rate_hz 500` |
 
 Wszystkie parametry z opisami: `config/r1_basics.yaml`. Nazwy węzłów, tematów i parametrów są takie same
 jak w drabinkach przeglądarkowych kursu („ten sam kod na robocie”).
@@ -163,6 +164,32 @@ ros2 topic echo /r1/mock/ground_truth --field pose.pose.position
 Pliki: `r1_basics/policy_sim.py` (MuJoCo + ONNX Runtime bez ROS: 83 obserwacje -> 24 cele przegubów co 20 ms),
 `r1_basics/r1_sim.py` (węzeł ROS 2), `tools/export_sim.py` (eksport sceny i opcji fizyki z mjlab),
 `tools/get_meshes.sh`, `sim/` (nasza polityka i scena; licencja siatek i modelu: Apache-2.0, © Unitree Robotics).
+
+## W12: sim2real (`r1_policy`) - NA ROBOCIE TYLKO NA SZUBIENICY
+
+> **Uruchomienie na prawdziwym R1 musi się odbyć na szubienicy, z robotem podwieszonym i asekurowanym przez cały
+> czas próby, z instruktorem.** `r1_policy` działa w trybie debug Unitree: wbudowany sterownik równowagi jest
+> wyłączony, robot trzyma się wyłącznie na polityce. Nic z W12 nie było jeszcze uruchamiane na prawdziwym R1.
+
+```bash
+# 1. polityka odporna na opóźnienie (maszyna z GPU, w katalogu unitree_rl_mjlab; instalacja jak w W11)
+python tools/train_delay.py Unitree-R1-Flat-Delay --env.scene.num-envs=4096 --agent.logger=tensorboard --agent.max-iterations=2200
+# 2. test odporności bez ROS (opóźnienia, KP ±20%, tarcie, masa) - polityka musi przejść 20 ms
+python3 tools/robust_lowcmd.py ~/r1_policy
+# 3. procedura na wirtualnej szubienicy (r1_sim interface:=lowcmd + r1_policy)
+ros2 launch r1_basics policy.launch.py sim_dir:=$HOME/r1_policy use_sim:=true cmd_delay_ms:=20
+ros2 topic pub --once /r1/sim/remote std_msgs/msg/String "{data: L2+UP}"     # FIXSTAND
+ros2 topic pub --once /r1/sim/gantry std_msgs/msg/Float64 "{data: 0.0}"      # stopy na podłodze
+ros2 topic pub --once /r1/sim/remote std_msgs/msg/String "{data: R2+A}"      # WALK, komenda zero
+ros2 topic pub --once /r1/sim/gantry std_msgs/msg/Float64 "{data: -0.15}"    # lina luźna
+ros2 topic pub -r 10 /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.1}}"
+ros2 topic pub --once /r1/sim/remote std_msgs/msg/String "{data: L2+B}"      # PASSIVE, robot na linie
+# 4. robot: TYLKO na szubienicy, tryb debug (L2+R2 w damping/zero torque, robot zawieszony), etapy z W12
+ros2 launch r1_basics policy.launch.py sim_dir:=$HOME/r1_policy use_sim:=false
+```
+
+Pilot (czytany z `/lowstate.wireless_remote`): L2+B → PASSIVE, L2+UP → FIXSTAND, R2+A → WALK. Zabezpieczenia
+węzła: brak `/lowstate` > 0,1 s albo przechył > 1 rad → PASSIVE; `/cmd_vel` starszy niż 0,5 s → zero; Ctrl+C → PASSIVE.
 
 ## Na prawdziwym R1 EDU
 

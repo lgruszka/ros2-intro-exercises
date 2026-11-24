@@ -66,3 +66,14 @@ r1_sim:
     reply_code: 0
     imu_yaw0: 0.3         # [rad] kurs IMU na starcie, jak w r1_mock
     rate_hz: 50.0         # = krok polityki 20 ms (4 kroki fizyki po 5 ms)
+
+r1_policy:
+  ros__parameters:
+    # W12. NA PRAWDZIWYM R1 TYLKO NA SZUBIENICY Z PODWIESZONYM I ASEKUROWANYM ROBOTEM (tryb debug Unitree)
+    policy: ''            # policy.onnx (najlepiej odporna na opóźnienie, tools/train_delay.py)
+    max_vx: 0.3           # [m/s] przycięcie /cmd_vel (na pierwsze próby: 0.1)
+    max_vy: 0.2
+    max_wz: 0.5
+    cmd_timeout_s: 0.5    # /cmd_vel starszy -> komenda zero (polityka stoi w miejscu)
+    lowstate_timeout_s: 0.1   # brak świeżego /lowstate -> PASSIVE (kp 0, kd 3)
+    cmd_rate_hz: 500.0    # /lowcmd: ostatnie cele (polityka co 20 ms)

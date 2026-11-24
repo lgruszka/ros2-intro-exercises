@@ -96,14 +96,61 @@ class R1PolicySim:
         self.acc = find(mujoco.mjtObj.mjOBJ_SENSOR, 'imu_lin_acc')
         self.gain0 = self.m.actuator_gainprm[:, 0].copy()
         self.bias0 = self.m.actuator_biasprm[:, :3].copy()
+        self.pelvis = find(mujoco.mjtObj.mjOBJ_BODY, 'pelvis')
+        self.torso = find(mujoco.mjtObj.mjOBJ_BODY, 'torso_link')
+        self.mass0 = self.m.body_mass.copy()
+        self.friction0 = self.m.geom_friction[:, 0].copy()
+        # szubienica: lina przyczepiona do górnej części tułowia (30 cm nad początkiem torso_link), napina się,
+        # gdy punkt zaczepienia zejdzie poniżej gantry_height [m]; None = bez liny
+        self.gantry_height = None
+        self.rope_offset = np.array([0.0, 0.0, 0.30])
+        self.rope_k, self.rope_c = 10000.0, 600.0  # [N/m], [N s/m] - lina z lekką sprężystością (ok. 3 cm pod R1)
+        self.rope_force = 0.0
         self.mode = 'policy'
         self.reset()
+        self.attach_stand = self.attach_point()[2]   # wysokość zaczepienia u stojącego robota (poza startowa)
+
+    # ---- zaburzenia do testów odporności (sim2sim) ---------------------------------------------------
+    def perturb(self, friction_scale=1.0, extra_torso_mass=0.0):
+        self.m.geom_friction[:, 0] = self.friction0 * friction_scale
+        self.m.body_mass[:] = self.mass0
+        self.m.body_mass[self.torso] += extra_torso_mass
+
+    # ---- tryb niskiego poziomu (/lowcmd) ---------------------------------------------------------------
+    def set_motor_cmd(self, q, kp, kd):
+        """Cele i wzmocnienia dla 24 przegubów polityki (kolejność joint_names), jak motor_cmd w LowCmd.
+        Aktuator pozycyjny MuJoCo: moment = kp * (q_cel - q) - kd * dq (z limitem momentu z modelu)."""
+        kp = np.asarray(kp, dtype=np.float64)
+        kd = np.asarray(kd, dtype=np.float64)
+        self.m.actuator_gainprm[self.act, 0] = kp
+        self.m.actuator_biasprm[self.act, 1] = -kp
+        self.m.actuator_biasprm[self.act, 2] = -kd
+        self.d.ctrl[self.act] = q
+
+    def attach_point(self):
+        R = self.d.xmat[self.torso].reshape(3, 3)
+        return self.d.xpos[self.torso] + R @ self.rope_offset
+
+    def physics_step(self):
+        """Jeden krok fizyki (timestep z modelu, 5 ms), z liną szubienicy, jeśli jest."""
+        self.d.qfrc_applied[:] = 0.0
+        self.rope_force = 0.0
+        if self.gantry_height is not None:
+            p = self.attach_point()
+            vel = np.zeros(6)
+            mujoco.mj_objectVelocity(self.m, self.d, mujoco.mjtObj.mjOBJ_BODY, self.torso, vel, 0)
+            stretch = self.gantry_height - p[2]
+            if stretch > 0:   # lina ciągnie tylko w górę, gdy zaczepienie zejdzie poniżej jej długości
+                self.rope_force = max(0.0, self.rope_k * stretch - self.rope_c * vel[5])
+                mujoco.mj_applyFT(self.m, self.d, np.array([0.0, 0.0, self.rope_force]), np.zeros(3), p,
+                                  self.torso, self.d.qfrc_applied)
+        mujoco.mj_step(self.m, self.d)
 
     # ---- stan ---------------------------------------------------------------------------------
-    def reset(self, x=0.0, y=0.0, yaw=0.0):
+    def reset(self, x=0.0, y=0.0, yaw=0.0, height=None):
         mujoco.mj_resetData(self.m, self.d)
         q = self.d.qpos
-        q[self.root_q:self.root_q + 3] = (x, y, self.init_height)
+        q[self.root_q:self.root_q + 3] = (x, y, self.init_height if height is None else height)
         q[self.root_q + 3:self.root_q + 7] = (math.cos(yaw / 2), 0.0, 0.0, math.sin(yaw / 2))
         q[self.qadr] = self.default
         self.d.ctrl[self.act] = self.default

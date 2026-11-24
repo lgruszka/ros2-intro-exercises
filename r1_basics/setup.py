@@ -31,6 +31,7 @@ setup(
             'camera = r1_basics.camera:main',
             'r1_mock = r1_basics.r1_mock:main',
             'r1_sim = r1_basics.r1_sim:main',
+            'r1_policy = r1_basics.r1_policy:main',
         ],
     },
 )
